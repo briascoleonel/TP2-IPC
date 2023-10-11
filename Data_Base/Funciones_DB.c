@@ -39,3 +39,81 @@ void Crear_Llenar(sqlite3 **db, char *err_msg)
     }
 
 }
+
+void get_Query(int rc, sqlite3 **db, char *query, char *resp, pthread_mutex_t *lock)
+{
+    sqlite3_stmt *res;
+    char aux[MAXLINE];
+
+    memset(resp, 0, MAXLINE);
+
+    pthread_mutex_lock(lock);
+    rc = sqlite3_prepare_v2(*db, query, -1, &res, 0);
+    pthread_mutex_unlock(lock);
+
+    if(rc != SQLITE_OK)
+    {
+        sprintf(resp, "Fallo al buscar data: %s\n", sqlite3_errmsg(*db));
+    }
+    else
+    {
+        while(sqlite3_step(res) != SQLITE_DONE)
+        {
+            int i;
+            int cant_col = sqlite3_column_count(res);
+            for (i = 0; i < cant_col; i++)
+            {
+                switch (sqlite3_column_type(res, i))
+                {
+                case (SQLITE_TEXT):
+                    sprintf(aux, "%s, ", sqlite3_column_text(res, i));
+                    strcat(resp,aux);
+                    break;
+                case(SQLITE_INTEGER):
+                    sprintf(aux, "%d, ", sqlite3_column_int(res, i));
+                    strcat(resp,aux);
+                    break;
+                case(SQLITE_FLOAT):
+                    sprintf(aux, "%g, ", sqlite3_column_double(res, i));
+                    strcat(resp, aux);
+                    break;
+                default:
+                    break;
+                }
+            }
+            sprintf(aux, "\n");
+            strcat(resp, aux);
+        }
+    }
+
+}
+
+void add_msg(sqlite3 **db, char *msg, int *lastid)
+{
+    int rc;
+    char comando[MAXLINE];
+    char *err_msg = 0;
+
+    rc = sqlite3_open("test.db", db);
+
+    if(rc != SQLITE_OK)
+    {
+        fprintf(stderr, "No se puede abrir base de datos: %s\n", sqlite3_errmsg(*db));
+        sqlite3_close(*db);
+        exit(EXIT_FAILURE);
+    }
+    
+    sprintf(comando,"INSERT INTO Mensajes VALUES(%d, '%s');",  (*(lastid) + 1), msg);
+    
+    rc = sqlite3_exec(*db, comando, 0, 0, &err_msg);
+
+    if(rc != SQLITE_OK)
+    {
+        fprintf(stderr, "SQL Error: %s\n", err_msg);
+        sqlite3_free(err_msg);
+        sqlite3_close(*db);
+        exit(EXIT_FAILURE);
+    }
+
+    *(lastid) = *(lastid) + 1;
+}
