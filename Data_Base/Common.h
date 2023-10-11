@@ -21,10 +21,12 @@
 #include "Verificar_Argumentos_Server.h"
 #include "Config_Socket_IPv4.h"
 #include "Handler.h"
+#include "Funciones_DB.h"
 
 
 #define SA struct sockaddr
 #define MAXLINE 4096
+#define CONX_DB 5
 
 //Struct que vamos a utilizar
 struct local_threads_arg_struct {
@@ -39,14 +41,6 @@ struct local_threads_arg_struct {
     int *Handlers;
     pthread_mutex_t *lock;
     pthread_mutex_t *global_lock;
-    int *salir;
-};
-
-struct local_writer_arg_struct {
-    long unsigned int *bytes_recv_total;
-    long unsigned int *bytes_recv_ult;
-    char Write_File_Name[MAXLINE];
-    pthread_mutex_t *lock;
     int *salir;
 };
 

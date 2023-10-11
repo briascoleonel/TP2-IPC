@@ -25,6 +25,7 @@
 #include "Config_Socket_IPv4.h"
 #include "Handler.h"
 #include "Common.h"
+#include "Funciones_DB.h"
 
 
 int dir_IPv4_valida(char *ipAddr)

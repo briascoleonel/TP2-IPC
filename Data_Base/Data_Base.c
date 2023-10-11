@@ -3,7 +3,9 @@
 int main(int argc, char *argv[])
 {
     sqlite3 *db;
-    char *msg_err = 0;
+    char *err_msg = 0;
+
+    Crear_Llenar(&db, err_msg);
 
     pthread_t IPv4_Server_Thread;
     struct IPv4_arg_struct IPv4_argumentos;
@@ -21,6 +23,7 @@ int main(int argc, char *argv[])
     IPv4_argumentos.IPV4_iport = (short unsigned int)atoi(argv[2]);
     IPv4_argumentos.db = &db;
     IPv4_argumentos.salir = &salir_todos;
+    IPv4_argumentos.max_clientes = CONX_DB;
 
     pthread_create(&IPv4_Server_Thread,NULL,Server_IPv4_codigo, &IPv4_argumentos);
 
