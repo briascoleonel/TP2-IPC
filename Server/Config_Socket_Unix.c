@@ -1,4 +1,5 @@
 #include "Common.h"
+#include "Estructuras.h"
 
 void server_conf_socket_Unix(int *sock, struct sockaddr_un *serv_addr, long unsigned int max, char *filename)
 {
@@ -30,6 +31,7 @@ void server_conf_socket_Unix(int *sock, struct sockaddr_un *serv_addr, long unsi
     {
         //Imprime error en caso de que asi sea
         printf("Error al asociar el socket con la direccion\n");
+        exit(EXIT_FAILURE);
     }
 
     //Ponemos a escuchar en el socket

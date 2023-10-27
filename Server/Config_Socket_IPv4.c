@@ -1,4 +1,5 @@
 #include "Common.h"
+#include "Estructuras.h"
 
 void server_conf_socket_IPv4(int *sock, struct sockaddr_in *serv_addr, int iport, long unsigned int max, char *string_addr)
 {

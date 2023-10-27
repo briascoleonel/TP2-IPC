@@ -1,4 +1,5 @@
 #include "Common.h"
+#include "Estructuras.h"
 
 void server_conf_socket_IPv6(int *sock, struct sockaddr_in6 *serv_addr, int iport, long unsigned int max, char *string_addr, char *interface_name)
 {
@@ -7,6 +8,13 @@ void server_conf_socket_IPv6(int *sock, struct sockaddr_in6 *serv_addr, int ipor
     {
         //Imprime error en caso de que asi sea
         printf("Error al crear el socket para el servidor\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int yes=1;
+
+    if (setsockopt(*(sock), SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
+        perror("setsockopt");
         exit(EXIT_FAILURE);
     }
 
@@ -26,6 +34,7 @@ void server_conf_socket_IPv6(int *sock, struct sockaddr_in6 *serv_addr, int ipor
     {
         //Imprime error en caso de que asi sea
         printf("Error al asociar el socket con la direccion\n");
+        exit(EXIT_FAILURE);
     }
 
     //Ponemos a escuchar en el socket

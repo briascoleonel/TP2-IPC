@@ -17,7 +17,7 @@ argv[11] = Log file global
 void verificar_argumentos(int argc, char *argv[])
 {
     //Cantidad de argumentos a pasar tiene que ser igual a 12
-    if(argc!=12)
+    if(argc!=10)
     {
         printf("Cantidad de argumentos invalida\n");
         exit(EXIT_FAILURE);
@@ -29,38 +29,24 @@ void verificar_argumentos(int argc, char *argv[])
     Verificar_Argumentos_IPv6(argv);
 
     //Cantidad de clientes tiene que ser un numero positivo, no letra y menor al maximo establecido
-    for(unsigned int i = 0; i < strlen(argv[10]); i ++)
+    for(unsigned int i = 0; i < strlen(argv[9]); i ++)
     {
-        if((isdigit(argv[10][i]) == 0)|| (atoi(argv[10]) < 0) || (atoi(argv[10]) > 10000) || strlen(argv[10]) > sizeof(int)) // Verificar que no se hayan ingresado letras, 
+        if((isdigit(argv[9][i]) == 0)|| (atoi(argv[9]) < 0) || (atoi(argv[9]) > 10000) || strlen(argv[9]) > sizeof(int)) // Verificar que no se hayan ingresado letras, 
         {
             printf("Debe ingresar una cantidad de clientes correcta\n");
             exit(EXIT_FAILURE);
         }
-    }
-
-    //El nombre de archivo para el global tiene que ser valido
-    if((strlen(argv[11])>MAXLINE) || (!filename_valido(argv[11])))
-    {
-        printf("Nombre de archivo invalido\n");
-        exit(EXIT_FAILURE);
     }
 }
 
 void Verificar_Argumentos_UNIX(char *argv[])
 {
     //El nombre del archivo UNIX tiene que ser correcto
-    if((strlen(argv[4])>MAXLINE) || (!filename_valido(argv[4])))
+    if((strlen(argv[3])>MAXLINE) || (!filename_valido(argv[3])))
     {
         printf("Nombre de archivo invalido\n");
         exit(EXIT_FAILURE);
     } 
-
-    //El archivo para el log tiene que ser correcto
-    if((strlen(argv[5])>MAXLINE) || (!filename_valido(argv[5])))
-    {
-        printf("Nombre de archivo invalido\n");
-        exit(EXIT_FAILURE);
-    }
 }
 
 void  Verificar_Argumentos_IPv4(char *argv[])
@@ -82,27 +68,21 @@ void  Verificar_Argumentos_IPv4(char *argv[])
         }
     }
 
-    //El archivo para el log tiene que ser correcto
-    if((strlen(argv[3])>MAXLINE) || (!filename_valido(argv[3])))
-    {
-        printf("Nombre de archivo invalido\n");
-        exit(EXIT_FAILURE);
-    }
 }
 
 void  Verificar_Argumentos_IPv6(char *argv[])
 {
     //La direccion IP debe ser correcta
-    if(!dir_IPv6_valida(argv[6]))
+    if(!dir_IPv6_valida(argv[4]))
     {
         printf("Debe ingresar una direccion IPv6 valida\n");
         exit(EXIT_FAILURE);
     }
 
     //El puerto tiene que ser digitos y estar entre 0 y 65535
-    for(unsigned int i = 0; i < strlen(argv[7]); i++)
+    for(unsigned int i = 0; i < strlen(argv[5]); i++)
     {
-        if((isdigit(argv[7][i]) == 0) || (atoi(argv[7]) <= 0) || (atoi(argv[7]) > 65535))
+        if((isdigit(argv[5][i]) == 0) || (atoi(argv[5]) <= 0) || (atoi(argv[5]) > 65535))
         {
             printf("Debe ingresar un puerto correcto\n");
             exit(EXIT_FAILURE);
@@ -110,20 +90,13 @@ void  Verificar_Argumentos_IPv6(char *argv[])
     }
 
     //La interfaz tiene que estar compuesta por numero y letras
-    for(unsigned int i = 0; i < strlen(argv[8]); i ++)
+    for(unsigned int i = 0; i < strlen(argv[6]); i ++)
     {
-        if((isdigit((argv[8][i]) == 0) && (isalpha(argv[8][i]) == 0)) || strlen(argv[8])>MAXLINE) 
+        if((isdigit((argv[6][i]) == 0) && (isalpha(argv[6][i]) == 0)) || strlen(argv[6])>MAXLINE) 
         {                                                               
             printf("Debe ingresar una interfaz correcta\n");               
             exit(EXIT_FAILURE);
         }
-    }
-
-    //El archivo para el log tiene que ser correcto
-    if((strlen(argv[9])>MAXLINE) || (!filename_valido(argv[9])))
-    {
-        printf("Nombre de archivo invalido\n");
-        exit(EXIT_FAILURE);
     }
 }
 
