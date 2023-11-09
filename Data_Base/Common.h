@@ -15,6 +15,7 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <sqlite3.h>
+#include <fcntl.h> 
 
 
 #include "Server_IPv4.h"
@@ -31,17 +32,13 @@
 //Struct que vamos a utilizar
 struct local_threads_arg_struct {
     int id;
-    int segs;
-    long unsigned int *total_bytes_recv_local;
-    long unsigned int *ult_bytes_recv_local;
-    long unsigned int *total_bytes_recv_global;
-    long unsigned int *ult_bytes_recv_global;
     int *socket_conx;
     int thread_salida;
     int *Handlers;
-    pthread_mutex_t *lock;
-    pthread_mutex_t *global_lock;
+    pthread_mutex_t *handler_lock;
+    pthread_mutex_t *db_lock;
     int *salir;
+    sqlite3 **db;
 };
 
 struct IPv4_arg_struct {
