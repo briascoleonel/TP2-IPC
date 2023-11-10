@@ -34,7 +34,28 @@ void* Task(void * arg)
                 break;
             }
         }
+
+        if(*(argumentos->salir) == 0)
+        {
+            while(bytes_lect > 0)
+            {
+                if(*(argumentos->salir) == 0)
+                {
+                    if(recvline[bytes_lect -1] == '\n')
+                    {
+                        memset(aux,0,MAXLINE);
+                        memset(rawmsg,0,MAXLINE);
+
+                        strcpy(aux,recvline);
+                        strcpy(rawmsg,aux);
+                        rawmsg[strcspn(rawmsg,'\n')] = 0;
+                        //Falta implementar la funcion para saber el tipo
+                    }
+                }
+            }
+        }
     }
+    
 
     while(argumentos->thread_salida == 0 && *(argumentos->salir) == 0)
     {
