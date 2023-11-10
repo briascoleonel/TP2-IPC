@@ -9,6 +9,32 @@ void* Task(void * arg)
     char rawmsg[MAXLINE] = "";       //Mensaje en crudo
     long int bytes_lect;
     unsigned long int conv_bytes_lect;
+    char file_tam[MAXLINE];
+    char buffer[MAXLINE];
+    long int bytes_escr;
+
+    char recvline_2[MAXLINE+1];
+    long int bytes_lect_2;
+
+    while(*(argumentos->salir) == 0)
+    {
+        bytes_lect = 0;
+        while(bytes_lect <= 0)
+        {
+            if(*(argumentos->salir) == 0)
+            {
+                bytes_lect = recv(*(argumentos->socket_conx), recvline, MAXLINE-1,MSG_DONTWAIT);
+            }
+            else
+            {
+                if(close(*(argumentos->socket_conx)) < 0)
+                {
+                    printf("Error al cerrar conexion %d.\n", *(argumentos->socket_conx));
+                }
+                break;
+            }
+        }
+    }
 
     while(argumentos->thread_salida == 0 && *(argumentos->salir) == 0)
     {
