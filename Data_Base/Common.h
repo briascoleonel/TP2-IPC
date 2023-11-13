@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #include <sqlite3.h>
 #include <fcntl.h> 
+#include <sys/stat.h> 
 
 
 #include "Server_IPv4.h"
@@ -39,6 +40,7 @@ struct local_threads_arg_struct {
     pthread_mutex_t *db_lock;
     int *salir;
     sqlite3 **db;
+    int *lastid;
 };
 
 struct IPv4_arg_struct {
@@ -55,7 +57,7 @@ void liberar_Handler(int *Handlers, int i, pthread_mutex_t *lock);
 int filename_valido(char *string); 
 int get_prim_hand_disp(int *Handlers, long unsigned int maxHandlers);
 int get_cant_hand_disp(int *Handlers, long unsigned int maxHandlers);
-
+char get_tipo_mensaje(char *string, char *msg);
 
 
 #endif 

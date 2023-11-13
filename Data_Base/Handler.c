@@ -1,5 +1,7 @@
 #include "Common.h"
 
+#define FILEPATH "test.db"
+
 void* Task(void * arg)
 {
     struct local_threads_arg_struct *argumentos = arg;
@@ -15,6 +17,10 @@ void* Task(void * arg)
 
     char recvline_2[MAXLINE+1];
     long int bytes_lect_2;
+
+    int rc = 0;
+    char query[MAXLINE] = "";
+    char resp[MAXLINE];
 
     while(*(argumentos->salir) == 0)
     {
@@ -49,76 +55,114 @@ void* Task(void * arg)
                         strcpy(aux,recvline);
                         strcpy(rawmsg,aux);
                         rawmsg[strcspn(rawmsg,'\n')] = 0;
-                        //Falta implementar la funcion para saber el tipo
-                    }
-                }
-            }
-        }
-    }
-    
+                        char t = get_tipo_mensaje(aux,query);
 
-    while(argumentos->thread_salida == 0 && *(argumentos->salir) == 0)
-    {
-        while(bytes_lect <= 0)
-        {
-            if(!argumentos->thread_salida)
-            {
-                bytes_lect = recv(*(argumentos->socket_conx), recvline, MAXLINE-1, MSG_DONTWAIT);
-            }
-            if(argumentos->thread_salida) //Se puede producir cuando se acaba el tiempo o error de lectura
-            {
-                if(bytes_lect < 0)
-                {
-                    printf("Error de lectura en %d\n", argumentos->id);
-                }
-                if(close(*(argumentos->socket_conx)) < 0)
-                {
-                    //Sale bad file descriptor
-                    perror("Error al cerrar conexion\n");
-                }
-                break;
-            }
-        }
-        if(!argumentos->thread_salida && *(argumentos->salir) == 0)
-        {
-            if(bytes_lect > 0)
-            {
-                pthread_mutex_lock(argumentos->lock);
-                argumentos->segs = 0;
-                pthread_mutex_unlock(argumentos->lock);
-                conv_bytes_lect = (unsigned long int)bytes_lect;
-                if(conv_bytes_lect > 0)
-                {
-                    pthread_mutex_lock(argumentos->lock);
-                    *(argumentos->total_bytes_recv_local) += conv_bytes_lect;
-                    *(argumentos->ult_bytes_recv_local) += conv_bytes_lect;
-                    pthread_mutex_unlock(argumentos->lock);
-                    pthread_mutex_lock(argumentos->global_lock);
-                    *(argumentos->total_bytes_recv_global) += conv_bytes_lect;
-                    *(argumentos->ult_bytes_recv_global) += conv_bytes_lect;
-                    pthread_mutex_unlock(argumentos->global_lock);
-                    conv_bytes_lect = 0;
-                }
-            }
-            while(bytes_lect > 0)
-            {
-                if(recvline[bytes_lect-1] == '\n') //Comprobamos finalizacion de mensaje HTTP
-                {
-                    memset(aux,0,MAXLINE);
-                    memset(rawmsg,0,MAXLINE);
-                    strcpy(aux,recvline);
-                    int i = 0;
-                    while(aux[i] != '\n')
-                    {
-                        rawmsg[i] = aux[i];
-                        i++;
+                        char addMsg[MAXLINE];
+                        strcpy(addMsg,rawmsg);
+                        addMsg[strcspn(addMsg,"\n")] = 0;
+                        pthread_mutex_lock(argumentos->db_lock);
+                        add_msg(argumentos->db,addMsg, argumentos->lastid);
+                        pthread_mutex_unlock(argumentos->db_lock);
+
+                        if((t == 'a') || (t == 'b'))
+                        {
+                            get_Query(rc,argumentos->db,query,resp,argumentos->db_lock);
+                            strcat(resp,"\r\n");
+                            bytes_lect = write(*(argumentos->socket_conx), resp, strlen(resp));
+                            if(bytes_lect < 0)
+                            {
+                                printf("Errro de escritura.\n");
+                                exit(EXIT_FAILURE);
+                            }
+                        }
+
+                        if(t == 'c')
+                        {
+                            struct stat sb;
+                            long int bytes_file;
+
+                            if(stat(FILEPATH,&sb))
+                            {
+                                perror("stat");
+                                exit(EXIT_FAILURE);
+                            }
+                            else
+                            {
+                                bytes_file = sb.st_size;
+                            }
+
+                            sprintf(file_tam,"%ld",bytes_file);
+                            strcat(file_tam,"\r\n");
+                            bytes_lect = write(*(argumentos->socket_conx), file_tam, strlen(file_tam));
+                            if(bytes_lect < 0)
+                            {
+                                printf("Error de escritura.\n");
+                                exit(EXIT_FAILURE);
+                            }
+
+                            bytes_lect_2 = 0;
+                            memset(recvline_2,0,MAXLINE);
+                            while(bytes_lect_2 <= 0)
+                            {
+                                if(*(argumentos->salir) == 0)
+                                {
+                                    bytes_lect_2 = recv(*(argumentos->socket_conx), recvline_2,MAXLINE-1,MSG_DONTWAIT);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+
+                            int input_file = open(FILEPATH, O_RDONLY);
+                            long int bytes_enviados = 0;
+
+                            while(bytes_file > 0)
+                            {
+                                if(*(argumentos->salir) == 0)
+                                {
+                                    long int bytes_lect_3 = read(input_file, buffer, sizeof(buffer));
+                                    if(bytes_lect_3 < 0)
+                                    {
+                                        printf("Error al leer archivo.\n");
+                                        exit(EXIT_FAILURE);
+                                    }
+
+                                    long int bytes_escritos = write(*(argumentos->socket_conx), buffer, (unsigned long int)bytes_lect_3);
+                                    if(bytes_escritos <= 0)
+                                    {
+                                        printf("Error al enviar.\n");
+                                        exit(EXIT_FAILURE);
+                                    }
+
+                                    bytes_file -= bytes_escritos;
+                                    bytes_enviados += bytes_escritos;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            close(input_file);
+                        }
+
+                        if(t == 'd')
+                        {
+                            printf("No se ha especificado el tipo de cliente.\n");
+                        }
+
+                        bytes_lect = 0;
+                        break;
                     }
-                    bytes_lect = 0;
+                }
+                else
+                {
                     break;
                 }
             }
         }
     }
-    liberar_Handler(argumentos->Handlers,argumentos->id, argumentos->lock);
+    
+    liberar_Handler(argumentos->Handlers,argumentos->id, argumentos->handler_lock);
     return NULL;
 }
