@@ -2,11 +2,13 @@
 
 int main(int argc, char *argv[])
 {
-    sqlite3 *db;
-    char *err_msg = 0;
+    //VARIABLES
+    sqlite3 *db;                //Base de datos
+    char *err_msg = 0;          //Mensaje de error
 
-    Crear_Llenar(&db, err_msg);
+    Crear_Llenar(&db, err_msg); //Llamado a funcion para crear y llenar la DB
 
+    //Variables de Server de DB    
     pthread_t IPv4_Server_Thread;
     struct IPv4_arg_struct IPv4_argumentos;
 
@@ -25,6 +27,7 @@ int main(int argc, char *argv[])
     IPv4_argumentos.salir = &salir_todos;
     IPv4_argumentos.max_clientes = CONX_DB;
 
+    //Lanza el hilo del Server
     pthread_create(&IPv4_Server_Thread,NULL,Server_IPv4_codigo, &IPv4_argumentos);
 
     //Mecanismo de salida
