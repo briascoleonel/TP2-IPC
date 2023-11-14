@@ -13,13 +13,12 @@ int main(int argc, char *argv[])
     char string[MAXLINE];                       //Ingresado en stdin
     char aux[MAXLINE];                          //Auxiliar utilizado para guardar sin salto de linea "/n"
     char fin_de_msg[7] = "\n";                  //Fin de mensaje agregado para simular HTTP
+    char env_msg[MAXLINE];
+    char recvline[MAXLINE];
 
-    //Para controlar cantidad de veces que se hace el envio
-    long unsigned int veces_enviado;            //Veces que vamos a enviar(se introduce como arg)
-    long unsigned int cont = 0;                 //Contador que ira aumentando cada vez que se envia
-    
     //Variables para enviar
-    long unsigned int cant_bytes;
+    long unsigned int cant_bytes_env;
+    long int cant_bytes_recv;
     long int escr_ret_val;
 
     //Llamamos a la verificadora de argumentos
@@ -48,47 +47,48 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    //Mensaje recibido por stdin en argv2
-    strcpy(string,argv[2]);
+    //Mensaje recibido por argumentos
+    strcpy(string,"SELECT * FROM Cars");
 
-    //Veces que se va a enviar en argv3
-    veces_enviado = (unsigned long int)atoi(argv[3]);
+    //Contruccion del mensaje
+    string[strcspn(string,"\n")] = 0;                   //Saca el \n
+    strcpy(aux,string);                                 //Guarda en el aux
+    strcat(string,fin_de_msg);                          //Concatena el string con fin_de_msg
 
-    while(1)
-    {
-        if(cont != veces_enviado)   //Controlamos que se envie las veces requeridas
-        {
-            //Contruccion del mensaje
-            string[strcspn(string,"\n")] = 0;                   //Saca el \n
-            strcpy(aux,string);                                 //Guarda en el aux
-            strcat(string,fin_de_msg);                          //Concatena el string con fin_de_msg
+    memset(env_msg,0,MAXLINE);
+    strcat(env_msg,"Tipo A | ");
+    strcat(env_msg,string);
+    cant_bytes_env = strlen(env_msg);
+    
 
-            //Envio del mensaje
-            cant_bytes = strlen(string);                        //Guarda la cantidad de bytes
-            escr_ret_val = write(sockfd,string, cant_bytes);    //Devuelve cantidad de bytes escritos o -1 si falla
+    //Envio del mensaje
+    escr_ret_val = write(sockfd,string, cant_bytes_env);    //Devuelve cantidad de bytes escritos o -1 si falla
             
-            //Comprobamos que no devuelva -1 o haya llegado a la cantidad de bytes    
-            if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes))
-            {
-                printf("Fallo al enviar mensaje\n");
-                exit(EXIT_FAILURE);
-            }
-            cont++;                                             //Aumenta el contador
-        }
-        else
-        {
-            break;
-        }
+    //Comprobamos que no devuelva -1 o haya llegado a la cantidad de bytes    
+    if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes_env))
+    {
+        printf("Fallo al enviar mensaje\n");
+            exit(EXIT_FAILURE);
     }
 
+    memset(recvline,0,MAXLINE);
+    cant_bytes_recv = 0;
+    while((recvline[cant_bytes_recv - 1] != '\n') && (recvline[cant_bytes_recv - 2] != '\r'))
+    {
+        while(cant_bytes_recv <= 0)
+        {
+            cant_bytes_recv = recv(sockfd,recvline,MAXLINE-1,MSG_DONTWAIT);
+        }
+    }
+    printf("Recibido: \n%s\n",recvline);
     close(sockfd);                                              //Cierra el socket
     exit(EXIT_SUCCESS);   
 }
 
 void verificar_argumentos_Unix(int argc, char *argv[])
 {
-    //La cantidad de argumentos debe ser 5
-    if(argc != 5)
+    //La cantidad de argumentos debe ser 2
+    if(argc != 2)
     {
         printf("Cantidad de argumentos invalida. Deberian ser 5\n");
         exit(EXIT_FAILURE);
@@ -100,35 +100,4 @@ void verificar_argumentos_Unix(int argc, char *argv[])
         printf("Nombre de archivo invalido\n");
         exit(EXIT_FAILURE);
     }
-
-    //Verifica que el mensaje solo tenga letras y numeros
-    for(unsigned int i = 0;i < strlen(argv[2]); i++)
-    {
-        if(((isdigit(argv[2][i]) == 0) && (isalpha(argv[2][i]) == 0)) || strlen(argv[2]) > MAXLINE)
-        {
-            printf("Debe ingresar un mensaje que solo conste de letras y numeros\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //Verifica que la cantidad de veces que se quiere enviar el mensaje sea correct
-    for(unsigned int i = 0;i < strlen(argv[3]); i++)
-    {
-        if((isdigit(argv[3][i]) == 0) || (atoi(argv[3]) <= 0))
-        {
-            printf("Debe ingresar una cantidad de veces correcta\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //Verifica que la cantidad de microsegundos a esperar antes de enviar sea correcta
-    for(unsigned int i = 0;i < strlen(argv[4]); i++)
-    {
-        if((isdigit(argv[4][i]) == 0) || (atoi(argv[4]) <= 0))
-        {
-            printf("Debe ingresar una cantidad correcta\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
 }
