@@ -17,17 +17,6 @@
 #include <sys/un.h>
 
 
-
-#include "Server_Unix.h"
-#include "Server_IPv4.h"
-#include "Server_IPv6.h"
-#include "File_Writing_Thread.h"
-#include "Verificar_Argumentos_Server.h"
-#include "Config_Socket_Unix.h"
-#include "Config_Socket_IPv4.h"
-#include "Config_Socket_IPv6.h"
-#include "Handler.h"
-#include "Contador.h"
 #include "Common.h"
 
 
@@ -45,20 +34,6 @@ int dir_IPv6_valida(char *ipAddr)
     return result != 0;
 }
 
-void ocupar_handler(int *Handlers, int i, pthread_mutex_t *lock)
-{
-    pthread_mutex_lock(lock);
-    Handlers[i] = 0;
-    pthread_mutex_unlock(lock);
-}
-
-void liberar_Handler(int *Handlers, int i, pthread_mutex_t *lock)
-{
-    pthread_mutex_lock(lock);
-    Handlers[i] = 1;
-    pthread_mutex_unlock(lock);
-}
-
 int filename_valido(char *string) 
 {
     //Controla la existencia de los siguientes caracteres: \/:*?"<>|
@@ -70,77 +45,28 @@ int filename_valido(char *string)
     return 1;
 }
 
-int get_prim_hand_disp(int *Handlers, long unsigned int maxHandlers)
+int get_input(char *string, int max)
 {
-    for(unsigned long int i = 0; i < maxHandlers; i++)
+    if(!fgets(string,max,stdin))
     {
-        if(Handlers[i])
-        {
-            return (int)i;
-        }
+        printf("Error al leer el string introducido.\n");
+        exit(EXIT_FAILURE);
     }
-    return -1;
-}
-
-int get_cant_hand_disp(int *Handlers, long unsigned int maxHandlers)
-{
-    int amount = 0;
-    for(unsigned long int i = 0; i < maxHandlers; i++)
+    if(!strchr(string,'\n'))
     {
-        if(Handlers[i])
+        char c;
+        do
         {
-            amount++;
+            c = (char)getchar();
         }
+        while(c != '\n' && c != EOF);
+        return -1;
     }
-    return amount;
-}
-
-void Hndlr(union sigval sigev_value) {
-    struct Info_t* info = sigev_value.sival_ptr;
-    long unsigned int bytesRec;
-    long unsigned int lastByteAmount;
-    long unsigned int bandwidth;
-    info->destFile = fopen(info->filename, "a"); 
-    pthread_mutex_lock(info->lock);
-    bytesRec = *(info->TotalBytesRcv);
-    bandwidth = bytesRec/info->cont;
-    lastByteAmount = *(info->LastBytesRcv);
-    *(info->LastBytesRcv) = 0;
-    pthread_mutex_unlock(info->lock);
-    
-    if(bytesRec != 0)
+    else
     {
-        if(fprintf(info->destFile,"Log: %ld | Total de Bytes recibidos: %ld | Bytes recibidos en este segundo: %ld | Bytes/s: %ld\n",
-        info->cont,bytesRec,lastByteAmount,bandwidth) < 0)
-        {
-            printf("Falla al escribir en archivo\n");
-            exit(EXIT_FAILURE);
-        }
-        info->cont++;   
+        return 0;
     }
-    fclose(info->destFile);
-    atomic_store(&info->status, Expire);
 }
 
-void TimerInit(struct Info_t* info) {
-    int r;
-    struct sigevent sev;
-    struct itimerspec its;
 
-    sev.sigev_notify = SIGEV_THREAD;
-    sev.sigev_value.sival_ptr = info;
-    sev.sigev_notify_function = &Hndlr;
-    sev.sigev_notify_attributes = 0;
-    r = timer_create(CLOCK_REALTIME, &sev, &info->timerId);
-    if(r)
-        abort();
 
-    its.it_interval.tv_sec = 1;
-    its.it_interval.tv_nsec = 0;
-    //its.it_value.tv_sec = seconds;
-    its.it_value.tv_sec = 1;
-    its.it_value.tv_nsec = 0;
-    r = timer_settime(info->timerId, 0, &its, NULL);
-    if(r)
-        abort();
-}
