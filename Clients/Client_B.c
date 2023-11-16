@@ -14,14 +14,14 @@ int main(int argc, char *argv[])
     char string[MAXLINE];                           //Ingresado en stdin
     char aux[MAXLINE];                              //Auxiliar utilizado para guardar sin salto de linea "/n"
     char fin_de_msg[7] = "\n";                      //Fin de mensaje agregado para simular HTTP
-
-    //Para controlar cantidad de veces que se hace el envio
-    long unsigned int veces_enviado;                //Veces que vamos a enviar(se introduce como arg)
-    long unsigned int cont = 0;                     //Contador que ira aumentando cada vez que se envia
+    char env_msg[MAXLINE];
+    char recvline[MAXLINE];
 
     //Variables para enviar
-    long unsigned int cant_bytes;
+    long unsigned int cant_bytes_env;
+    long int cant_bytes_recv;
     long int escr_ret_val;
+
 
     //Llamamos a la verificadora de argumentos
     verificar_argumentos_IPv6(argc,argv);
@@ -59,12 +59,16 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    //Mensaje recibido por stdin en argv4
-    strcpy(string,argv[4]);
+    while(strcmp(aux,"salir") != 0)
+    {
+        memset(string,0,MAXLINE);
+        memset(env_msg,0,MAXLINE);
+        strcat(env_msg,"Tipo B | ");
+        printf("Ingrese el mensaje que se desea enviar: ");
+        //Funcion para ingreso de mensaje
+    }
 
-    //Veces que se va a enviar en argv5
-    veces_enviado = (unsigned long int)atoi(argv[5]);
-
+    /*
     while(1)
     {
         if(cont != veces_enviado)   //Controlamos que se envie las veces requeridas
@@ -91,7 +95,7 @@ int main(int argc, char *argv[])
             break;
         }
     }
-
+*/
     close(sockfd);                                              //Cierra el socket
     exit(EXIT_SUCCESS);   
 }
