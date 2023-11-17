@@ -11,16 +11,16 @@ int main(int argc, char *argv[])
     short unsigned int iport;                       //Para verificar numero de puerto
 
     //Para obtener mensaje por stdin que sera enviado al server
-    char string[MAXLINE];                           //Ingresado en stdin
-    char aux[MAXLINE];                              //Auxiliar utilizado para guardar sin salto de linea "/n"
-    char fin_de_msg[7] = "\n";                      //Fin de mensaje agregado para simular HTTP
+    char recvline[MAXLINE];                           //Ingresado en stdin
+    char env_msg[MAXLINE];                              //Auxiliar utilizado para guardar sin salto de linea "/n"
 
     //Para controlar cantidad de veces que se hace el envio
     long unsigned int veces_enviado;                //Veces que vamos a enviar(se introduce como arg)
     long unsigned int cont = 0;                     //Contador que ira aumentando cada vez que se envia
     
     //Variables para enviar
-    long unsigned int cant_bytes;
+    long unsigned int cant_bytes_env;
+    long int cant_bytes_recv;
     long int escr_ret_val;
 
     //Llamamos a la verificadora de argumentos
@@ -57,12 +57,33 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    //Mensaje recibido por stdin en argv3
-    strcpy(string,argv[3]);
+    memset(env_msg,0,MAXLINE);
+    strcat(env_msg,"Tipo C | Descargar archivo\n");
 
-    //Veces que se va a enviar en argv4
-    veces_enviado = (unsigned long int)atoi(argv[4]);
+    cant_bytes_env = strlen(env_msg);
+    escr_ret_val = write(sockfd,env_msg,cant_bytes_env);
+    if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes_env))
+    {
+        printf("Error al enviar mensaje.\n");
+        exit(EXIT_FAILURE);
+    }
 
+    memset(recvline,0,MAXLINE);
+    cant_bytes_recv = 0;
+    while((recvline[cant_bytes_recv - 1] != '\n') && (recvline[cant_bytes_recv - 2] != '\r'))
+    {
+        while(cant_bytes_recv <= 0)
+        {
+            cant_bytes_recv = recv(sockfd,recvline,MAXLINE-1,MSG_DONTWAIT);                
+        }
+    }
+
+    if(cant_bytes_recv < 0)
+    {
+        printf("Error de lectura.\n");
+        exit(EXIT_FAILURE);
+    }
+/*
     while(1)
     {
         if(cont != veces_enviado)   //Controlamos que se envie las veces requeridas
@@ -89,7 +110,7 @@ int main(int argc, char *argv[])
             break;
         }
     }
-
+*/
     close(sockfd);                                              //Cierra el socket
     exit(EXIT_SUCCESS);   
 }
