@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
     char fin_de_msg[7] = "\n";                      //Fin de mensaje agregado para simular HTTP
     char env_msg[MAXLINE];
     char recvline[MAXLINE];
+    char aux2[MAXLINE];
 
     //Variables para enviar
     long unsigned int cant_bytes_env;
@@ -65,7 +66,49 @@ int main(int argc, char *argv[])
         memset(env_msg,0,MAXLINE);
         strcat(env_msg,"Tipo B | ");
         printf("Ingrese el mensaje que se desea enviar: ");
-        //Funcion para ingreso de mensaje
+        while(get_input(string,MAXLINE) == -1)
+        {
+            printf("Cantidad de caracteres excedida (%d). Por favor, ingrese un mensaje con el tamaño correcto.", MAXLINE-2);
+        }
+
+        string[strcspn(string,"\n")] = 0;
+
+        strcpy(aux,string);
+        strcpy(aux2,string);
+        strcat(string,fin_de_msg);
+        strcat(env_msg,string);
+        cant_bytes_env = strlen(env_msg);
+        escr_ret_val = write(sockfd,env_msg,cant_bytes_env);
+
+        if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes_env))
+        {
+            printf("Error al enviar mensaje.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if(!strcmp(aux2,"salir"))
+        {
+            printf("Detectado, salir.\n");
+            break;
+        }
+
+        memset(recvline,0,MAXLINE);
+        cant_bytes_recv = 0;
+        while((recvline[cant_bytes_recv - 1] != '\n') && (recvline[cant_bytes_recv - 2] != '\r'))
+        {
+            while(cant_bytes_recv <= 0)
+            {
+                cant_bytes_recv = recv(sockfd,recvline,MAXLINE-1,MSG_DONTWAIT);                
+            }
+        }
+
+        printf("Recibido: \n%s\n", recvline);
+
+        if(cant_bytes_recv < 0)
+        {
+            printf("Error de lectura.\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     /*
