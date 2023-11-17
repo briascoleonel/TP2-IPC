@@ -145,8 +145,8 @@ int main(int argc, char *argv[])
 
 void verificar_argumentos_IPv6(int argc, char *argv[])
 {
-    //La cantidad de argumentos debe ser 7
-    if(argc != 7)
+    //La cantidad de argumentos debe ser 4
+    if(argc != 4)
     {
         printf("Cantidad de argumentos invalida. Deberian ser 5\n");
         exit(EXIT_FAILURE);
@@ -169,36 +169,6 @@ void verificar_argumentos_IPv6(int argc, char *argv[])
         if(((isdigit(argv[3][i]) == 0) && (isalpha(argv[3][i]) == 0)) || strlen(argv[3]) > MAXLINE)
         {
             printf("Debe ingresar un mensaje que solo conste de letras y numeros\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //Verifica que el mensaje solo tenga letras y numeros
-    for(unsigned int i = 0; i < strlen(argv[4]); i++)
-    {
-        if(((isdigit(argv[4][i]) == 0) && (isalpha(argv[4][i]) == 0)) || strlen(argv[4]) > MAXLINE)
-        {
-            printf("Debe ingresar un mensaje correcto\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //Verifica que la cantidad de veces que se quiere enviar el mensaje sea correct
-    for(unsigned int i = 0;i < strlen(argv[5]); i++)
-    {
-        if((isdigit(argv[5][i]) == 0) || (atoi(argv[5]) <= 0))
-        {
-            printf("Debe ingresar una cantidad de veces correcta\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //Verifica que la cantidad de microsegundos a esperar antes de enviar sea correcta
-    for(unsigned int i = 0;i < strlen(argv[6]); i++)
-    {
-        if((isdigit(argv[6][i]) == 0) || (atoi(argv[6]) <= 0))
-        {
-            printf("Debe ingresar una cantidad correcta\n");
             exit(EXIT_FAILURE);
         }
     }
