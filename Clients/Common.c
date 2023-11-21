@@ -15,9 +15,12 @@
 #include <netinet/in.h>             //Para struct de in
 #include <net/if.h>                 //Network interfaces
 #include <sys/un.h>
+#include <fcntl.h>
 
 
 #include "Common.h"
+
+#define FILEPATH "test.db"
 
 
 int dir_IPv4_valida(char *ipAddr)
@@ -65,6 +68,39 @@ int get_input(char *string, int max)
     else
     {
         return 0;
+    }
+}
+
+void descargar_file(int *socket, unsigned long int tam_file)
+{
+    char recvline[MAXLINE];
+    long int bytes_rcv = 0;
+    long int total_bytes_rcv = 0;
+    long int bytes_esc = 0;
+    unsigned long int TAM = tam_file;
+
+    int target = open(FILEPATH,O_WRONLY|O_CREAT|O_TRUNC,0644);
+    if(target == -1)
+    {
+        printf("Error al crear/leer el archivo.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    while(TAM != 0)
+    {
+        memset(recvline,0,MAXLINE);
+
+        bytes_rcv = read(*(socket),recvline,MAXLINE);
+        TAM -= (unsigned long int)bytes_rcv;
+        total_bytes_rcv += bytes_rcv;
+
+        bytes_esc += write(target,recvline,(unsigned long int)bytes_rcv); 
+    }
+
+    if((close(target) < 0))
+    {
+        printf("Error al cerrar.\n");
+        exit(EXIT_FAILURE);
     }
 }
 

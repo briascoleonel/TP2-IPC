@@ -83,6 +83,22 @@ int main(int argc, char *argv[])
         printf("Error de lectura.\n");
         exit(EXIT_FAILURE);
     }
+
+    memset(env_msg,0,MAXLINE);
+    strcat(env_msg,"Tamaño recibido.\n");
+    cant_bytes_env = strlen(env_msg);
+    escr_ret_val = write(sockfd,env_msg,cant_bytes_env);
+    if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes_env))
+    {
+        printf("Error al enviar mensaje.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char tam_file[MAXLINE];
+    strcpy(tam_file,recvline);
+    tam_file[strcspn(tam_file,"\n")] = 0;
+    long unsigned int TAM = (long unsigned int)atoi(tam_file);
+    //Implementar funcion para descargar el file
 /*
     while(1)
     {
@@ -117,8 +133,8 @@ int main(int argc, char *argv[])
 
 void verificar_argumentos_IPv4(int argc, char *argv[])
 {
-    //La cantidad de argumentos debe ser 6
-    if(argc != 6)
+    //La cantidad de argumentos debe ser 3
+    if(argc != 3)
     {
         printf("Cantidad de argumentos invalida. Deberian ser 5\n");
         exit(EXIT_FAILURE);
@@ -131,36 +147,6 @@ void verificar_argumentos_IPv4(int argc, char *argv[])
         if((isdigit(argv[2][i]) == 0) || (atoi(argv[2]) <= 0) || (atoi(argv[2]) > 65535))
         {
             printf("Debe ingresar un numero de puerto correcto\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //Verifica que el mensaje solo tenga letras y numeros
-    for(unsigned int i = 0; i < strlen(argv[3]); i++)
-    {
-        if(((isdigit(argv[3][i]) == 0) && (isalpha(argv[3][i]) == 0)) || strlen(argv[3]) > MAXLINE)
-        {
-            printf("Debe ingresar un mensaje que solo conste de letras y numeros\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //Verifica que la cantidad de veces que se quiere enviar el mensaje sea correct
-    for(unsigned int i = 0;i < strlen(argv[4]); i++)
-    {
-        if((isdigit(argv[4][i]) == 0) || (atoi(argv[4]) <= 0))
-        {
-            printf("Debe ingresar una cantidad de veces correcta\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    //Verifica que la cantidad de microsegundos a esperar antes de enviar sea correcta
-    for(unsigned int i = 0;i < strlen(argv[5]); i++)
-    {
-        if((isdigit(argv[5][i]) == 0) || (atoi(argv[5]) <= 0))
-        {
-            printf("Debe ingresar una cantidad correcta\n");
             exit(EXIT_FAILURE);
         }
     }
