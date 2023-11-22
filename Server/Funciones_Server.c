@@ -64,3 +64,56 @@ int get_cant_hand_disp(int *Handlers, long unsigned int maxHandlers)
     }
     return amount;
 }
+
+char get_tipo_mensaje(char *string, char *msg)
+{
+    char tipo[MAXLINE];
+    char query[MAXLINE];
+    int i = 0;
+    int j = 0;
+    int parte = 0;
+
+    memset(msg,0,MAXLINE);
+    memset(query,0,MAXLINE);
+
+    while(string[i != '\n'])
+    {
+        if((string[i+2] != '\n') && (string[i] == ' ') && (string[i+1] == '|') && (string[i+2] == ' '))
+        {
+            parte = 1;
+        }
+        if(parte == 1)
+        {
+            break;
+        }
+        if(parte == 0)
+        {
+            tipo[i] = string [i];
+        }
+        i++;
+    }
+
+    i += 3;
+    j = 0;
+    while(string[i] != '\n')
+    {
+        query[j] = string[i];
+        i++;
+        j++;
+    }
+    strcpy(msg,query);
+    if(!strcmp(tipo, "Tipo A"))
+    {
+        return 'a';
+    }
+    if(!strcmp(tipo, "Tipo B"))
+    {
+        return 'b';
+    }
+    if(!strcmp(tipo, "Tipo C"))
+    {
+        return 'c';
+    }
+    return 'd';
+}
+

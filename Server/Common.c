@@ -20,3 +20,38 @@
 #include "Verificar_Argumentos_Server.h"
 #include "Common.h"
 
+typedef struct db_req db_request;
+
+
+int isEmpty_db_request_list(db_request_list *self)
+{
+    db_request *aux = self->node;
+    if(aux == NULL)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+db_request *get_db_request(db_request_list *pl, int id)
+{
+    db_request *aux = pl->node;
+    int i = 0;
+    while(aux != NULL)
+    {
+        /*if(aux->id == id)
+        {
+            return aux;
+        }*/
+        if(i == id)
+        {
+            return aux;
+        }
+        aux = aux->next;
+        i++;
+    }
+    return NULL;
+}

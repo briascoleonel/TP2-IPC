@@ -10,5 +10,7 @@ void liberar_Handler(int *Handlers, int i, pthread_mutex_t *lock);
 int filename_valido(char *string);
 int get_prim_hand_disp(int *Handlers, long unsigned int maxHandlers);
 int get_cant_hand_disp(int *Handlers, long unsigned int maxHandlers);
+char get_tipo_mensaje(char *string, char *msg)
+
 
 #endif
