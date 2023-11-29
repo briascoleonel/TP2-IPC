@@ -46,6 +46,7 @@ struct conx_arg_struct{
 
 int isEmpty_db_request_list(db_request_list *self)
 db_request *get_db_request(db_request_list *pl, int id)
+void remove_req_list_head(db_request_list *self)
 
 
 #endif 

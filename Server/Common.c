@@ -55,3 +55,21 @@ db_request *get_db_request(db_request_list *pl, int id)
     }
     return NULL;
 }
+
+void remove_req_list_head(db_request_list *self)
+{
+    db_request *aux = self->node;
+    //db_request *aux2 = self->node;
+    if(aux == NULL)
+    {
+        printf("No hay requests en la lista\n");
+        return;
+    }
+    /*while(aux2 != NULL)
+    {
+        aux2 = aux2->next;
+    }*/
+    self->node = aux->next;
+    free(aux);
+    return;
+}

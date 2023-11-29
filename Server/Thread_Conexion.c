@@ -150,6 +150,24 @@ void *Thread_Conex_Codigo(void *arg)
                         exit(EXIT_FAILURE);
                     }
                 }
+                if(t == 'a' || (t == 'b' && (!strcmp(env_msg,"Tipo B | salir\n"))))
+                {
+                    if(close(*(req->conn)) < 0)
+                    {
+                        printf("Conexion: %d, Error al cerrar conexion %d\n", arguments->id,*(req->conn));
+                        //printf("El errno es: ")
+                    }
+                    else
+                    {
+                        pthread_mutex_lock(arguments->list_lock);
+                        *(req->conn) = -1;
+                        pthread_mutex_unlock(arguments->list_lock);
+                    }
+                }
+                pthread_mutex_lock(arguments->list_lock);
+                remove_req_list_head(arguments->list);
+                pthread_mutex_unlock(arguments->list_lock);
+                liberar_Handler(arguments->conx_disp,arguments->id,arguments->conx_lock);
             }
         }
     }
