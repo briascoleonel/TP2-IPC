@@ -80,6 +80,77 @@ void *Thread_Conex_Codigo(void *arg)
             {
                 exit(0);
             }
+            if((t == 'a') || (t == 'b'))
+            {
+                if(strcmp(env_msg, "Tipo B | salir\n"))
+                {
+                    cant_bytes_env = strlen(env_msg);
+                    escr_ret_val = 0;
+                    while(escr_ret_val <= 0)
+                    {
+                        if(*(arguments->salir) == 0)
+                        {
+                            escr_ret_val = send(connfd,env_msg,cant_bytes_env,MSG_DONTWAIT);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    memset(recvline,0,MAXLINE);
+                    cant_bytes_recv = 0;
+                    while((recvline[cant_bytes_recv-1] != '\n') && (recvline[cant_bytes_recv-2] != '\r'))
+                    {
+                        if(*(arguments->salir) == 0)
+                        {
+                            while(cant_bytes_recv <= 0)
+                            {
+                                if(*(arguments->salir) == 0)
+                                {
+                                    cant_bytes_recv = recv(connfd,recvline,MAXLINE-1,MSG_DONTWAIT);
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                            if((recvline[cant_bytes_recv-1] == '\n') && (recvline[cant_bytes_recv-2] == '\r'))
+                            {
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    memset(env_msg,0,MAXLINE);
+                    strcpy(env_msg,recvline);
+                    cant_bytes_env = srtlen(env_msg);
+                    escr_ret_val = 0;
+                    while(escr_ret_val <= 0)
+                    {
+                        if(*(arguments->salir) == 0)
+                        {
+                            if(*(req->conn) > 0)
+                            {
+                                escr_ret_val = send(*(req->conn),env_msg,cant_bytes_env,MSG_DONTWAIT);
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes_env))
+                    {
+                        printf("Error al enviar mensaje en Thread Conexion %d, fd= %d\n",arguments->id,*(req->conn));
+                        //printf("El errno es: ")
+                        exit(EXIT_FAILURE);
+                    }
+                }
+            }
         }
     }
 
