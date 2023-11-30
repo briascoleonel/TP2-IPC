@@ -169,6 +169,79 @@ void *Thread_Conex_Codigo(void *arg)
                 pthread_mutex_unlock(arguments->list_lock);
                 liberar_Handler(arguments->conx_disp,arguments->id,arguments->conx_lock);
             }
+
+            if(t == 'c')
+            {
+                cant_bytes_env = strlen(env_msg);
+                escr_ret_val = 0;
+                while(escr_ret_val <= 0)
+                {
+                    if(*(arguments->salir) == 0)
+                    {
+                        escr_ret_val = send(connfd,env_msg,cant_bytes_env,MSG_DONTWAIT);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                memset(recvline,0,MAXLINE);
+                cant_bytes_recv = 0;
+                while((recvline[cant_bytes_recv-1] != '\n') && (recvline[cant_bytes_recv-2] != '\r'))
+                {
+                    if(*(arguments->salir) == 0)
+                    {
+                        while(cant_bytes_recv <= 0)
+                        {
+                            cant_bytes_recv = recv(connfd,recvline,MAXLINE-1,MSG_DONTWAIT);
+                        }
+                        if((recvline[cant_bytes_recv-1] == '\n') && (recvline[cant_bytes_recv-2] == '\r'))
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+            }
+
+            memset(env_msg,0,MAXLINE);
+            strcat(env_msg,"Tam recibido\n");
+            cant_bytes_env = strlen(env_msg);
+            escr_ret_val = write(connfd,env_msg,cant_bytes_env);
+            if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes_env))
+            {
+                printf("Error al enviar mensaje\n");
+                //printf("El errno es: ")
+                exit(EXIT_FAILURE);
+            }
+            escr_ret_val = 0;
+            cant_bytes_env = strlen(recvline);
+            while(escr_ret_val <= 0)
+            {
+                if(*(arguments->salir) == 0)
+                {
+                    escr_ret_val = send(*(req->conn), recvline,cant_bytes_env,MSG_DONTWAIT);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            cant_bytes_recv2 = 0;
+            memset(recvline2,0,MAXLINE);
+            while(cant_bytes_recv2 != 13)
+            {
+                if(*(arguments->salir) == 0)
+                {
+                    cant_bytes_recv2 = recv(*(req->conn),recvline2,MAXLINE-1,MSG_DONTWAIT);
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
     }
 
