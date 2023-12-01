@@ -73,3 +73,15 @@ void remove_req_list_head(db_request_list *self)
     free(aux);
     return;
 }
+
+db_request_list *new_db_request_list()
+{
+    db_request_list *l = malloc(sizeof(db_request_list));
+    if(!l)
+    {
+        printf("Error al asignar memoria\n");
+        exit(EXIT_FAILURE);
+    }
+    l->node = NULL;
+    return l;
+}

@@ -42,11 +42,29 @@ struct conx_arg_struct{
     pthread_mutex_t *conx_lock;
     pthread_mutex_t *list_lock;
     db_request_list *list;
+    struct ack_arg_struct *ack_arg;
 };
 
-int isEmpty_db_request_list(db_request_list *self)
-db_request *get_db_request(db_request_list *pl, int id)
-void remove_req_list_head(db_request_list *self)
+struct ack_arg_struct{
+    int *conx_socket;
+    int *ack;
+    pthread_mutex_t *ack_lock;
+};
+
+struct pool_arg_struct{
+    char IPV4_Server_Address[MAXLINE];
+    short unsigned int IPV4_iport;
+    int *salir;
+    pthread_mutex_t *req_list_lock;
+    db_request_list *list;
+    struct ack_arg_struct *ack_arg;
+};
+
+int isEmpty_db_request_list(db_request_list *self);
+db_request *get_db_request(db_request_list *pl, int id);
+void remove_req_list_head(db_request_list *self);
+db_request_list *new_db_request_list();
+
 
 
 #endif 
