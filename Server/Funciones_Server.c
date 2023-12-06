@@ -40,27 +40,38 @@ int filename_valido(char *string)
     return 1;
 }
 
-int get_prim_hand_disp(int *Handlers, long unsigned int maxHandlers)
+int get_prim_hand_disp(int *Handlers, long unsigned int maxHandlers, pthread_mutex_t *lock)
 {
+    int prim = -1;    
+    int encontrado = 0;
     for(unsigned long int i = 0; i < maxHandlers; i++)
     {
-        if(Handlers[i])
+        if(!prim)
         {
-            return (int)i;
+            pthread_mutex_lock(&lock[i]);
+            if(Handlers[i])
+            {
+                prim = (int)i;
+                encontrado = 1;
+            }
+            pthread_mutex_unlock(&lock[i]);
         }
+
     }
-    return -1;
+    return prim;
 }
 
-int get_cant_hand_disp(int *Handlers, long unsigned int maxHandlers)
+int get_cant_hand_disp(int *Handlers, long unsigned int maxHandlers, pthread_mutex_t *lock)
 {
     int amount = 0;
     for(unsigned long int i = 0; i < maxHandlers; i++)
     {
+        pthread_mutex_lock(&lock[i]);
         if(Handlers[i])
         {
             amount++;
         }
+        pthread_mutex_unlock(&lock[i]);
     }
     return amount;
 }
