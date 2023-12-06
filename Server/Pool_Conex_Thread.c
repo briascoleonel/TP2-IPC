@@ -55,4 +55,57 @@ void* Pool_Conex_Thread_Codigo(void *arg)
     int vacio = 1;
     int cant_conx_disp = 0;
     int sig_conx = -1;
+
+    while((argumentos->salir) == 0)
+    {
+        pthread_mutex_lock(argumentos->req_list_lock);
+        vacio = isEmpty_db_request_list(argumentos->list);
+        pthread_mutex_unlock(argumentos->req_list_lock);
+
+        while(vacio)
+        {
+            if(((*argumentos->salir) == 0))
+            {
+                pthread_mutex_lock(argumentos->req_list_lock);
+                vacio = isEmpty_db_request_list(argumentos->req_list_lock);
+                pthread_mutex_unlock(argumentos->req_list_lock);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if((*argumentos->salir) == 0)
+        {
+            while(cant_conx_disp == 0)
+            {
+                if(((*argumentos->salir) == 0))
+                {
+                    cant_conx_disp = get_cant_hand_disp(cant_conx_disp, (long unsigned int)5, conx_lock);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            if(*(argumentos->salir) == 0)
+            {
+                sig_conx = get_prim_hand_disp(conx_disp, 5, conx_lock);
+                cant_conx_disp = 0;
+                while(sig_conx == -1)
+                {
+                    sig_conx = get_prim_hand_disp(conx_disp, 5, conx_lock);
+                }
+                ocupar_handler(conx_disp,sig_conx,&conx_lock[sig_conx]);
+                if(sig_conx == 5)
+                {
+                    printf("Hubo siguiente con 5\n");
+                    exit(0);
+                }
+            }
+
+        }
+    }
+
 }
