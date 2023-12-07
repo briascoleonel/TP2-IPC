@@ -64,6 +64,12 @@ int isEmpty_db_request_list(db_request_list *self);
 db_request *get_db_request(db_request_list *pl, int id);
 void remove_req_list_head(db_request_list *self);
 db_request_list *new_db_request_list();
+void add_db_request(db_request_list *self, int id, int *conn, char *sendmsg);
+void remove_db_request(db_request_list *self, int id);
+int db_request_list_getNextID(db_request_list *self);
+
+
+
 
 
 

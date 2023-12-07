@@ -85,3 +85,82 @@ db_request_list *new_db_request_list()
     l->node = NULL;
     return l;
 }
+
+void add_db_request(db_request_list *self, int id, int *conn, char *sendmsg)
+{
+    db_request *aux = (self->node);
+    db_request *new;
+    new = new_db_request(id,conn,sendmsg);
+    if(aux == NULL)
+    {
+        self->node = new;
+    }
+    else
+    {
+        while(aux->next != NULL)
+        {
+            aux = aux->next;
+        }
+        aux->next = new;
+    }
+}
+
+void remove_db_request(db_request_list *self, int id)
+{
+    db_request *current = self->node;
+    db_request *aux;
+    db_request *aux2;
+    db_request *aux3;
+    
+    //int i = 0;
+
+    if(id == 0)
+    {
+        self->node = self->node->next;
+        free(current);
+    }
+    else
+    {
+        aux2 = current->next;
+        aux = current;
+        while(aux2 != NULL)
+        {
+            if(aux2->id == id)
+            //if(i == id)
+            {
+                aux->next = aux2->next;
+                aux3 = aux->next;
+                while(aux3 != NULL)
+                {
+                    aux3->id--;
+                    aux3 = aux3->next;
+                }
+                free(aux2);
+                break;
+            }
+            else
+            {
+                aux = aux->next;
+                aux2 = aux2->next;
+                //i++;
+            }
+        }
+    }
+}
+
+int db_request_list_getNextID(db_request_list *self)
+{
+    db_request *aux = self->node;
+    if(self->node == NULL)
+    {
+        return 0;
+    }
+    else
+    {
+        while(aux->next != NULL)
+        {
+            aux = aux->next;
+        }
+        return aux->id + 1;
+    }
+}
