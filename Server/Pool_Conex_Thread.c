@@ -111,7 +111,7 @@ void* Pool_Conex_Thread_Codigo(void *arg)
                 pthread_mutex_unlock(argumentos->req_list_lock);
 
                 pthread_mutex_lock(&conx_list_lock[sig_conx]);
-                add_db_request(conx_args[sig_conx].list,db_request_list_getNextID(conx_args[sig_conx].list,conx_aux,string_aux));
+                add_db_request(conx_args[sig_conx].list,db_request_list_getNextID(conx_args[sig_conx].list),conx_aux,string_aux);
                 pthread_mutex_unlock(&conx_list_lock[sig_conx]);
 
                 pthread_mutex_lock(argumentos->req_list_lock);
@@ -125,5 +125,21 @@ void* Pool_Conex_Thread_Codigo(void *arg)
             break;
         }
     }
+    for(int i = 0; i < 5; i++)
+    {
+        pthread_join(conx_threads[i],NULL);
+    }
 
+    for(int i = 0; i < 5; i++)
+    {
+        pthread_mutex_destroy(&conx_lock[i]);
+        pthread_mutex_destroy(&conx_list_lock[i]);
+    }
+
+    free(conx_threads);
+    free(conx_args);
+    free(conx_lock);
+    free(conx_list_lock);
+    free(l);
+    return NULL;
 }
