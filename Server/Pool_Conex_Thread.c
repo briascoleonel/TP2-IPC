@@ -103,8 +103,26 @@ void* Pool_Conex_Thread_Codigo(void *arg)
                     printf("Hubo siguiente con 5\n");
                     exit(0);
                 }
+
+                pthread_mutex_lock(argumentos->req_list_lock);
+                int *conx_aux = get_db_request(argumentos->list,0)->conn;
+                char string_aux[MAXLINE];
+                strcpy(string_aux,get_db_request(argumentos->list,0)->env_msg);
+                pthread_mutex_unlock(argumentos->req_list_lock);
+
+                pthread_mutex_lock(&conx_list_lock[sig_conx]);
+                add_db_request(conx_args[sig_conx].list,db_request_list_getNextID(conx_args[sig_conx].list,conx_aux,string_aux));
+                pthread_mutex_unlock(&conx_list_lock[sig_conx]);
+
+                pthread_mutex_lock(argumentos->req_list_lock);
+                remove_req_list_head(argumentos->list);
+                pthread_mutex_unlock(argumentos->req_list_lock);
             }
 
+        }
+        else
+        {
+            break;
         }
     }
 
