@@ -60,6 +60,21 @@ struct pool_arg_struct{
     struct ack_arg_struct *ack_arg;
 };
 
+struct local_threads_arg_struct {
+    int id;
+    int *socket_conx;
+    int thread_salida;
+    int *Handlers;
+    pthread_mutex_t *handler_lock;
+    int *salir;
+    int segs;
+    struct ack_arg_struct *ack_arg;
+    pthread_mutex_t *req_list_lock;
+    pthread_mutex_t *lock;
+    pthread_mutex_t *list;
+    
+};
+
 int isEmpty_db_request_list(db_request_list *self);
 db_request *get_db_request(db_request_list *pl, int id);
 void remove_req_list_head(db_request_list *self);
