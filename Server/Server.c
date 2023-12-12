@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Funciones_Server.h"
 #include "Estructuras.h"
+#include "Pool_Conex_Thread.h"
 
 int main(int argc, char *argv[])
 {
@@ -35,4 +36,21 @@ int main(int argc, char *argv[])
         ack_argumentos[i].ack_lock = &(ack_lock[i]);
         ack_argumentos[i].conx_socket = &(conx_socket[i]);
     }
+
+    verificarArgumentos(argc,argv);
+    strcpy(pool_conx_argumentos.IPV4_Server_Address,argv[7]);
+    pool_conx_argumentos.IPV4_iport = (unsigned short int)atoi(argv[8]);
+    pool_conx_argumentos.salir = &salir_todos;
+    pool_conx_argumentos.list = l;
+    pool_conx_argumentos.req_list_lock = &req_list_lock;
+    pool_conx_argumentos.ack_arg = ack_argumentos;
+
+    pthread_create(&pool_conx,NULL,Pool_Conex_Thread_Codigo,&pool_conx_argumentos);
+    strcpy(IPv4_argumentos.IPV4_Server_Address,argv[1]);
+    IPv4_argumentos.IPV4_iport = (short unsigned int)atoi(argv[2]);
+    IPv4_argumentos.req_list_lock = &req_list_lock;
+    IPv4_argumentos.list = l;
+    IPv4_argumentos.max_clientes = atoi(argv[9]);
+    IPv4_argumentos.salir = &salir_todos;
+    IPv4_argumentos.ack_arg = ack_argumentos;
 }
