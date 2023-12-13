@@ -53,4 +53,34 @@ int main(int argc, char *argv[])
     IPv4_argumentos.max_clientes = atoi(argv[9]);
     IPv4_argumentos.salir = &salir_todos;
     IPv4_argumentos.ack_arg = ack_argumentos;
+
+    strcpy(file_path,argv[3]);
+    strcpy(file_name,file_path);
+    strcat(file_name,"UNIX_FILE");
+
+    if(remove(file_name) == 0)
+    {
+        rmdir(file_path);
+    }
+    if(mkdir(file_path,0777) < 0)
+    {
+        printf("Error al crear el directorio.\n");
+        //Errno
+        exit(EXIT_FAILURE);
+    }
+
+    strcpy(Unix_argumentos.UNIX_File_Name,file_name);
+    Unix_argumentos.req_list_lock = &req_list_lock;
+    Unix_argumentos.list = l;
+    Unix_argumentos.max_clientes = atoi(argv[9]);
+    Unix_argumentos.salir = &salir_todos;
+
+    strcpy(IPv6_argumentos.IPV6_Server_Address,argv[4]);
+    strcpy(IPv6_argumentos.IPV6_Interface,argv[6]);
+    IPv6_argumentos.IPV6_iport = (short unsigned int)atoi(argv[5]);
+    IPv6_argumentos.req_list_lock = &req_list_lock;
+    IPv6_argumentos.list = l;
+    IPv6_argumentos.max_clientes = atoi(argv[9]);
+    IPv6_argumentos.salir = &salir_todos;
+
 }
