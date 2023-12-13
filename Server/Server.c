@@ -2,6 +2,10 @@
 #include "Funciones_Server.h"
 #include "Estructuras.h"
 #include "Pool_Conex_Thread.h"
+#include "Server_Unix.h"
+#include "Server_IPv4.h"
+#include "Server_IPv6.h"
+
 
 int main(int argc, char *argv[])
 {
@@ -83,4 +87,49 @@ int main(int argc, char *argv[])
     IPv6_argumentos.max_clientes = atoi(argv[9]);
     IPv6_argumentos.salir = &salir_todos;
 
+    pthread_create(&Unix_Thread_Server,NULL,Server_Unix_codigo,&Unix_argumentos);
+    pthread_create(&IPv4_Thread_Server,NULL,Server_IPv4_codigo,&IPv4_argumentos);
+    pthread_create(&IPv6_Thread_Server,NULL,Server_IPv6_codigo,&IPv6_argumentos);
+    //Mecanismo de salida
+    
+    while (!salir_todos) 
+    {
+        printf("Ingrese -salir- para cerrar el server\n");
+        fgets(salir, sizeof(salir), stdin);
+        if (strcmp(salir, "salir\n") == 0) 
+        {
+            salir_todos = 1;
+        } 
+        else 
+        {
+            printf("No ha ingresado salir. Ha ingresado: %s\n", salir);
+        }
+    }
+
+    pthread_join(Unix_Thread_Server,NULL);
+    pthread_join(IPv4_Thread_Server,NULL);
+    pthread_join(IPv6_Thread_Server,NULL);
+    pthread_join(pool_conx,NULL);
+
+    for(int i = 0; i < 5; i++)
+    {
+        pthread_mutex_destroy(&ack_lock[i]);
+    }
+    pthread_mutex_destroy(&req_list_lock);
+
+    if(remove(file_name) < 0)
+    {
+        printf("Error al eliminar el archivo UNIX.\n");
+        //Errno
+        exit(EXIT_FAILURE);
+    }
+
+    if(rmdir(file_path) < 0)
+    {
+        printf("Error al eliminar el directorio UNIX.\n");
+        //Errno
+        exit(EXIT_FAILURE);
+    }
+
+    return 0;
 }
