@@ -1,22 +1,20 @@
 #include "Common.h"
-
+#include "Funciones_Server.h"
 /*
 argv[1]  = Dir IPv4
 argv[2]  = Puerto IPv4
-argv[3]  = Log file IPv4 
-argv[4]  = File UNIX
-argv[5]  = Log file UNIX
-argv[6]  = Dir IPv6
-argv[7]  = Puerto IPv6
-argv[8]  = Interfaz IPv6 
-argv[9]  = Log file IPv6
-argv[10] = Cantidad de Clientes
-argv[11] = Log file global
+argv[3]  = File path
+argv[4]  = Dir IPv6
+argv[5]  = Puerto IPv6
+argv[6]  = Interfaz IPv6
+argv[7]  = Dir IPv4 CP
+argv[8]  = Puerto IPv4 CP 
+argv[9]  = Cantidad de Clientes
 */
 
 void verificar_argumentos(int argc, char *argv[])
 {
-    //Cantidad de argumentos a pasar tiene que ser igual a 12
+    //Cantidad de argumentos a pasar tiene que ser igual a 10
     if(argc!=10)
     {
         printf("Cantidad de argumentos invalida\n");
@@ -62,6 +60,23 @@ void  Verificar_Argumentos_IPv4(char *argv[])
     for(unsigned int i = 0; i < strlen(argv[2]); i++)
     {
         if((isdigit(argv[2][i]) == 0) || (atoi(argv[2]) <= 0) || (atoi(argv[2])>65535))
+        {
+            printf("Debe ingresar un puerto correcto\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    //La direccion IP debe ser correcta (CP)
+    if(!dir_IPv4_valida(argv[7]))
+    {
+        printf("Debe ingresar una direccion IPv4 correcta\n");
+        exit(EXIT_FAILURE);
+    }
+
+    //El puerto tiene que ser digitos y estar entre 0 y 65535
+    for(unsigned int i = 0; i < strlen(argv[8]); i++)
+    {
+        if((isdigit(argv[8][i]) == 0) || (atoi(argv[8]) <= 0) || (atoi(argv[8])>65535))
         {
             printf("Debe ingresar un puerto correcto\n");
             exit(EXIT_FAILURE);
