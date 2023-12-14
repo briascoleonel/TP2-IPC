@@ -1,9 +1,10 @@
 #include "Common.h"
 #include "Estructuras.h"
 #include "Funciones_Server.h"
-#include "Config_Socket_Unix.h"
+#include "Config_Socket_IPv4.h"
 #include "Handler.h"
 #include "Contador.h"
+#include "fcntl.h"
 
 void *Server_IPv4_codigo(void *arg)
 {
@@ -64,58 +65,70 @@ void *Server_IPv4_codigo(void *arg)
     //Esperando conexiones y lanzando hilos hasta que salir deje de ser 0
     while(*(argumentos->salir) == 0)
     {
-        //En exclusion mutua usando el lock
-        pthread_mutex_lock(&lock);
-        //Usa la funcion get_cant_hand_disp
-        cant_handlers_disp = (long unsigned int) get_cant_hand_disp(handlers_disp,(unsigned long int) argumentos->max_clientes);
-        pthread_mutex_unlock(&lock);                        //Libero el lock
-
+        cant_handlers_disp = (long unsigned int) get_cant_hand_disp(handlers_disp,(unsigned long int) argumentos->max_clientes,handlers_lock);
         //Compruebo que queden handlers disponibles
         //Usa get_prim_hand_disp para comprobar tambien que haya disponibles
-        if(cant_handlers_disp == 0 || get_prim_hand_disp(handlers_disp, (unsigned long int)argumentos->max_clientes) < 0)
+        if(cant_handlers_disp == 0 || get_prim_hand_disp(handlers_disp, (unsigned long int)argumentos->max_clientes,handlers_lock) < 0)
         {
             while(cant_handlers_disp == 0)
             {
-                pthread_mutex_lock(&lock);
-                cant_handlers_disp = (long unsigned int)get_cant_hand_disp(handlers_disp, (unsigned long int)argumentos->max_clientes);
-                pthread_mutex_unlock(&lock);
+                if(*(argumentos->salir) == 0)
+                {
+                    cant_handlers_disp = (long unsigned int)get_cant_hand_disp(handlers_disp, (unsigned long int)argumentos->max_clientes,handlers_lock);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        //Pasando la prueba de disponibilidad, agarra el primero disponible
+        //Tambien en exclusion mutua
+        if(*(argumentos->salir) == 0)
+        {
+            sig_handler = get_prim_hand_disp(handlers_disp, (unsigned long int)argumentos->max_clientes,handlers_lock);
+        }
+
+        cant_handlers_disp = 0;
+
+        int flags = fcntl(listenfd, F_GETFL, 0);       // Configurar para que accept() pase a ser
+        fcntl(listenfd, F_SETFL, flags | O_NONBLOCK);  // no bloqueante.
+
+
+        while(connfd[sig_handler] < 0)
+        {
+            if(*(argumentos->salir) == 0)
+            {
+                connfd[sig_handler] = accept(listenfd, (SA*) NULL, NULL);
+            }
+            else
+            {
+                break;
             }
         }
 
-        //Pasando la prueba de disponibilidad, agarra el primero disponible
-        //Tambien en exclusion mutua
-        pthread_mutex_lock(&lock);
-        sig_handler = get_prim_hand_disp(handlers_disp, (unsigned long int)argumentos->max_clientes);
-        pthread_mutex_unlock(&lock);
-
-        fflush(stdout);                                     //Limpia el buffer de stdout
-
-        //Espera y acepta una conexion en el handler disponible
-        connfd[sig_handler] = accept(listenfd, (SA*) NULL, NULL);
-
-        //Si no hay handler siguiente, salta el error
-        if(connfd[sig_handler] == -1)
+        if(*(argumentos->salir) == 0)
         {
-            printf("Error en accept:\n");
-            exit(EXIT_FAILURE);
+            //Ya habiendo conexion, carga los argumentos de la estructura
+            handler_thread_args[sig_handler].id = sig_handler;
+            handler_thread_args[sig_handler].socket_conx = &(connfd[sig_handler]);
+            handler_thread_args[sig_handler].thread_salida = 0;
+            handler_thread_args[sig_handler].Handlers = handlers_disp;
+            handler_thread_args[sig_handler].lock = &lock;
+            handler_thread_args[sig_handler].salir = argumentos->salir;
+            handler_thread_args[sig_handler].segs = 0;
+            handler_thread_args[sig_handler].handler_lock = &handlers_lock[sig_handler];
+            handler_thread_args[sig_handler].req_list_lock = &argumentos->req_list_lock;
+            handler_thread_args[sig_handler].ack_arg = argumentos->ack_arg;
+            handler_thread_args[sig_handler].list = argumentos->list;
+
+            //Se modifican los handlers disponibles en exclusion mutua
+            ocupar_handler(handlers_disp,sig_handler,&handlers_lock[sig_handler]);
+
+            //Se lanzan los hilos de la tarea en si y el contador
+            pthread_create(&(task_thread[sig_handler]), NULL, Task, &(handler_thread_args[sig_handler]));
+            pthread_create(&(cont_thread[sig_handler]), NULL, Contador_codigo, &(handler_thread_args[sig_handler]));
         }
-
-//Ya habiendo conexion, carga los argumentos de la estructura
-        handler_thread_args[sig_handler].id = sig_handler;
-        handler_thread_args[sig_handler].socket_conx = &(connfd[sig_handler]);
-        handler_thread_args[sig_handler].thread_salida = 0;
-        handler_thread_args[sig_handler].Handlers = handlers_disp;
-        handler_thread_args[sig_handler].lock = &lock;
-        handler_thread_args[sig_handler].salir = argumentos->salir;
-        handler_thread_args[sig_handler].segs = 0;
-
-        //Se lanzan los hilos de la tarea en si y el contador
-        pthread_create(&(task_thread[sig_handler]), NULL, Task, &(handler_thread_args[sig_handler]));
-        pthread_create(&(cont_thread[sig_handler]), NULL, Contador_codigo, &(handler_thread_args[sig_handler]));
-
-        //Se modifican los handlers disponibles en exclusion mutua
-        ocupar_handler(handlers_disp,sig_handler,&lock);
-
     }
 
     //En caso de que se introduzca "salir", con join esperamos a terminen los hilos que estan corriendo
@@ -123,24 +136,8 @@ void *Server_IPv4_codigo(void *arg)
     {
         for(int i=0; i<argumentos->max_clientes;i++)
         {
-            pthread_mutex_lock(&lock);
-            if(handlers_disp[i] == 1)
-            {
-                pthread_join(task_thread[i],NULL);
-                pthread_join(cont_thread[i],NULL);
-            }
-            pthread_mutex_unlock(&lock);
-        }
-    }
-
-    //Recorremos y cerramos todos los file descriptors
-    //CONEXION
-    for(int i=0;i<argumentos->max_clientes;i++)
-    {
-        if((close(connfd[i])<0))
-        {
-            printf("Erro al cerrar conn %d\n",i);
-            exit(EXIT_FAILURE);
+            pthread_join(task_thread[i],NULL);
+            pthread_join(cont_thread[i],NULL);
         }
     }
 
@@ -151,13 +148,19 @@ void *Server_IPv4_codigo(void *arg)
         exit(EXIT_FAILURE); 
     }
 
+    for(int i=0;i<argumentos->max_clientes;i++)
+    {
+        pthread_mutex_destroy(&handlers_lock[i]);
+    }
+
     //Liberamos la memoria previamente asignada
     free(handlers_disp);   
     free(task_thread);          
     free(connfd);              
     free(handler_thread_args); 
     free(cont_thread);
-
+    free(handlers_lock);
+    
     return NULL;
 
 }
