@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Funciones_Server.h"
+#include "Estructuras.h"
 
 void* Task(void * arg)
 {
@@ -44,7 +45,7 @@ void* Task(void * arg)
         {
             if(bytes_lect > 0)
             {
-                if(!argumentos->thread_salida && *(argumentos->salir) == 0)
+                if((argumentos->thread_salida == 0) && (*(argumentos->salir) == 0))
                 {
                     pthread_mutex_lock(argumentos->lock);
                     argumentos->segs = 0;
