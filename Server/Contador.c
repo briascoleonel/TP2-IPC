@@ -1,4 +1,5 @@
 #include "Common.h"
+#include "Estructuras.h"
 
 void* Contador_codigo(void *arg)
 {
