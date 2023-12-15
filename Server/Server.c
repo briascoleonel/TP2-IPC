@@ -5,6 +5,7 @@
 #include "Server_Unix.h"
 #include "Server_IPv4.h"
 #include "Server_IPv6.h"
+#include <pthread.h>
 
 
 int main(int argc, char *argv[])
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
 
     pthread_mutex_t ack_lock[5];
     pthread_mutex_t req_list_lock;
+    pthread_mutexattr_t mta;
 
     db_request_list *l = new_db_request_list();
     
@@ -32,6 +34,8 @@ int main(int argc, char *argv[])
     char file_path[MAXLINE];
     char file_name[MAXLINE];
     char salir[MAXLINE];
+
+    pthread_mutexattr_init(&mta);
 
     for(int i = 0; i < 5; i++)
     {
