@@ -1,11 +1,12 @@
 #include "Common.h"
 #include "Funciones_Server.h"
+#include "Estructuras.h"
 
 void *Thread_Conex_Codigo(void *arg)
 {
     int connfd;                                     
     struct sockaddr_in server_addr;                
-    struct conx_arg_struct *arguments = arg;                      
+    struct conx_arg_struct *argumentos = arg;                      
 
     char env_msg[MAXLINE];
     char recvline[MAXLINE];
@@ -24,12 +25,14 @@ void *Thread_Conex_Codigo(void *arg)
         exit(EXIT_FAILURE);
     }
 
+    *(argumentos->ack_arg->conx_socket) = connfd;
+
     bzero(&server_addr, sizeof(server_addr));       //Establece los primeros n bytes del área de bytes a partir de s en cero
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(arguments->IPV4_iport);            //Convierte los bytes a estandar de bytes de red
+    server_addr.sin_port = htons(argumentos->IPV4_iport);            //Convierte los bytes a estandar de bytes de red
 
     //Crea una estructura de dirección de red
-    if(inet_pton(AF_INET,arguments->IPV4_Server_Address, &server_addr.sin_addr) <= 0)
+    if(inet_pton(AF_INET,argumentos->IPV4_Server_Address, &server_addr.sin_addr) <= 0)
     {
         printf("Fallo al convertir direccion IP  a binario\n");
         exit(EXIT_FAILURE);
@@ -38,23 +41,23 @@ void *Thread_Conex_Codigo(void *arg)
     //Conexion con el server
     if(connect(connfd, (SA*) &server_addr, sizeof(server_addr)) < 0)
     {
-        printf("Falla al conectar con el servidor de conexion %d.\nAsegurese de que el server este funcionando.\n", arguments->id);
+        printf("Falla al conectar con el servidor de conexion %d.\nAsegurese de que el server este funcionando.\n", argumentos->id);
         exit(EXIT_FAILURE);
     }
 
-    while(*(arguments->salir) == 0 )
+    while(*(argumentos->salir) == 0 )
     {
-        pthread_mutex_lock(arguments->list_lock);
-        vacio = isEmpty_db_request_list(arguments->list);
-        pthread_mutex_unlock(arguments->list_lock);
+        pthread_mutex_lock(argumentos->list_lock);
+        vacio = isEmpty_db_request_list(argumentos->list);
+        pthread_mutex_unlock(argumentos->list_lock);
 
         while(vacio)
         {
-            if(*(arguments->salir) == 0)
+            if(*(argumentos->salir) == 0)
             {
-                pthread_mutex_lock(arguments->list_lock);
-                vacio = isEmpty_db_request_list(arguments->list);
-                pthread_mutex_unlock(arguments->list_lock);
+                pthread_mutex_lock(argumentos->list_lock);
+                vacio = isEmpty_db_request_list(argumentos->list);
+                pthread_mutex_unlock(argumentos->list_lock);
             }
             else
             {
@@ -62,14 +65,14 @@ void *Thread_Conex_Codigo(void *arg)
             }
         }
 
-        if(*(arguments->salir) == 0)
+        if(*(argumentos->salir) == 0)
         {
             db_request *req = malloc(sizeof(db_request));
             char t = 'd';
 
-            pthread_mutex_lock(arguments->list_lock);
-            req = get_db_request(arguments->list,0);
-            pthread_mutex_unlock(arguments->list_lock);
+            pthread_mutex_lock(argumentos->list_lock);
+            req = get_db_request(argumentos->list,0);
+            pthread_mutex_unlock(argumentos->list_lock);
             if(req != NULL)
             {
                 t = get_tipo_mensaje(req->env_msg,env_msg);
@@ -88,7 +91,7 @@ void *Thread_Conex_Codigo(void *arg)
                     escr_ret_val = 0;
                     while(escr_ret_val <= 0)
                     {
-                        if(*(arguments->salir) == 0)
+                        if(*(argumentos->salir) == 0)
                         {
                             escr_ret_val = send(connfd,env_msg,cant_bytes_env,MSG_DONTWAIT);
                         }
@@ -102,11 +105,11 @@ void *Thread_Conex_Codigo(void *arg)
                     cant_bytes_recv = 0;
                     while((recvline[cant_bytes_recv-1] != '\n') && (recvline[cant_bytes_recv-2] != '\r'))
                     {
-                        if(*(arguments->salir) == 0)
+                        if(*(argumentos->salir) == 0)
                         {
                             while(cant_bytes_recv <= 0)
                             {
-                                if(*(arguments->salir) == 0)
+                                if(*(argumentos->salir) == 0)
                                 {
                                     cant_bytes_recv = recv(connfd,recvline,MAXLINE-1,MSG_DONTWAIT);
                                 }
@@ -131,7 +134,7 @@ void *Thread_Conex_Codigo(void *arg)
                     escr_ret_val = 0;
                     while(escr_ret_val <= 0)
                     {
-                        if(*(arguments->salir) == 0)
+                        if(*(argumentos->salir) == 0)
                         {
                             if(*(req->conn) > 0)
                             {
@@ -145,7 +148,7 @@ void *Thread_Conex_Codigo(void *arg)
                     }
                     if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes_env))
                     {
-                        printf("Error al enviar mensaje en Thread Conexion %d, fd= %d\n",arguments->id,*(req->conn));
+                        printf("Error al enviar mensaje en Thread Conexion %d, fd= %d\n",argumentos->id,*(req->conn));
                         //printf("El errno es: ")
                         exit(EXIT_FAILURE);
                     }
@@ -154,20 +157,20 @@ void *Thread_Conex_Codigo(void *arg)
                 {
                     if(close(*(req->conn)) < 0)
                     {
-                        printf("Conexion: %d, Error al cerrar conexion %d\n", arguments->id,*(req->conn));
+                        printf("Conexion: %d, Error al cerrar conexion %d\n", argumentos->id,*(req->conn));
                         //printf("El errno es: ")
                     }
                     else
                     {
-                        pthread_mutex_lock(arguments->list_lock);
+                        pthread_mutex_lock(argumentos->list_lock);
                         *(req->conn) = -1;
-                        pthread_mutex_unlock(arguments->list_lock);
+                        pthread_mutex_unlock(argumentos->list_lock);
                     }
                 }
-                pthread_mutex_lock(arguments->list_lock);
-                remove_req_list_head(arguments->list);
-                pthread_mutex_unlock(arguments->list_lock);
-                liberar_Handler(arguments->conx_disp,arguments->id,arguments->conx_lock);
+                pthread_mutex_lock(argumentos->list_lock);
+                remove_req_list_head(argumentos->list);
+                pthread_mutex_unlock(argumentos->list_lock);
+                liberar_Handler(argumentos->conx_disp,argumentos->id,argumentos->conx_lock);
             }
 
             if(t == 'c')
@@ -176,7 +179,7 @@ void *Thread_Conex_Codigo(void *arg)
                 escr_ret_val = 0;
                 while(escr_ret_val <= 0)
                 {
-                    if(*(arguments->salir) == 0)
+                    if(*(argumentos->salir) == 0)
                     {
                         escr_ret_val = send(connfd,env_msg,cant_bytes_env,MSG_DONTWAIT);
                     }
@@ -189,7 +192,7 @@ void *Thread_Conex_Codigo(void *arg)
                 cant_bytes_recv = 0;
                 while((recvline[cant_bytes_recv-1] != '\n') && (recvline[cant_bytes_recv-2] != '\r'))
                 {
-                    if(*(arguments->salir) == 0)
+                    if(*(argumentos->salir) == 0)
                     {
                         while(cant_bytes_recv <= 0)
                         {
@@ -220,7 +223,7 @@ void *Thread_Conex_Codigo(void *arg)
                 cant_bytes_env = strlen(recvline);
                 while(escr_ret_val <= 0)
                 {
-                    if(*(arguments->salir) == 0)
+                    if(*(argumentos->salir) == 0)
                     {
                         escr_ret_val = send(*(req->conn), recvline,cant_bytes_env,MSG_DONTWAIT);
                     }
@@ -233,7 +236,7 @@ void *Thread_Conex_Codigo(void *arg)
                 memset(recvline2,0,MAXLINE);
                 while(cant_bytes_recv2 != 13)
                 {
-                    if(*(arguments->salir) == 0)
+                    if(*(argumentos->salir) == 0)
                     {
                         cant_bytes_recv2 = recv(*(req->conn),recvline2,MAXLINE-1,MSG_DONTWAIT);
                     }
@@ -243,9 +246,9 @@ void *Thread_Conex_Codigo(void *arg)
                     }
                 }
 
-                pthread_mutex_lock(arguments->ack_arg[arguments->id].ack_lock);
-                *(arguments->ack_arg[arguments->id].ack) = 0;
-                pthread_mutex_unlock(arguments->ack_arg[arguments->id].ack_lock);
+                pthread_mutex_lock(argumentos->ack_arg[argumentos->id].ack_lock);
+                *(argumentos->ack_arg[argumentos->id].ack) = 0;
+                pthread_mutex_unlock(argumentos->ack_arg[argumentos->id].ack_lock);
 
                 char tam_file[MAXLINE];
                 strcpy(tam_file,recvline);
@@ -256,7 +259,7 @@ void *Thread_Conex_Codigo(void *arg)
                 long int bytes_escritos = 0;
                 while(Tam_File != 0)
                 {
-                    if(*(arguments->salir) == 0)
+                    if(*(argumentos->salir) == 0)
                     {
                         memset(recvline,0,MAXLINE);
                         rcv_bytes = recv(connfd,recvline,MAXLINE-1,MSG_DONTWAIT);
@@ -277,19 +280,19 @@ void *Thread_Conex_Codigo(void *arg)
                 }
                 if(close(*(req->conn)) < 0)
                 {
-                    printf("Soy conexion %d, Error al cerrar conexion %d\n",arguments->id,*(req->conn));
+                    printf("Soy conexion %d, Error al cerrar conexion %d\n",argumentos->id,*(req->conn));
                     //printf("El errno es: ")
                 }
                 else
                 {
-                    pthread_mutex_lock(arguments->list_lock);
+                    pthread_mutex_lock(argumentos->list_lock);
                     *(req->conn) = -1;
-                    pthread_mutex_unlock(arguments->list_lock);
+                    pthread_mutex_unlock(argumentos->list_lock);
                 }
-                pthread_mutex_lock(arguments->list_lock);
-                remove_req_list_head(arguments->list);
-                pthread_mutex_unlock(arguments->list_lock);
-                liberar_Handler(arguments->conx_disp, arguments->id, arguments->conx_lock);
+                pthread_mutex_lock(argumentos->list_lock);
+                remove_req_list_head(argumentos->list);
+                pthread_mutex_unlock(argumentos->list_lock);
+                liberar_Handler(argumentos->conx_disp, argumentos->id, argumentos->conx_lock);
             }
         }
         else
