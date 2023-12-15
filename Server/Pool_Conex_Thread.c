@@ -1,6 +1,7 @@
 #include "Common.h"
 #include "Funciones_Server.h"
 #include "Thread_Conexion.h"
+#include "Estructuras.h"
 
 void* Pool_Conex_Thread_Codigo(void *arg)
 {
@@ -11,6 +12,7 @@ void* Pool_Conex_Thread_Codigo(void *arg)
     pthread_mutex_t *conx_lock;
     pthread_mutex_t *conx_list_lock;
     db_request_list **l;
+    pthread_mutexattr_t mta;
 
     conx_threads = malloc((5 * sizeof(pthread_t)));
     conx_args = malloc((5 * sizeof(struct conx_arg_struct)));
@@ -18,14 +20,16 @@ void* Pool_Conex_Thread_Codigo(void *arg)
     conx_list_lock = malloc((5 * sizeof(pthread_mutex_t)));
     l = malloc((5 * sizeof(db_request_list)));
 
+    pthread_mutexattr_init(&mta);
+
     for(int i = 0; i < 5; i++)
     {
         l[i] = new_db_request_list();
     }
     for(int i = 0; i < 5; i++)
     {
-        //Esta bien?
-        pthread_mutex_lock(&conx_list_lock[i]);
+        pthread_mutex_init(&conx_lock[i],&mta);
+        pthread_mutex_init(&conx_list_lock[i],&mta);
     }
     for(int i = 0; i < 5; i++)
     {
