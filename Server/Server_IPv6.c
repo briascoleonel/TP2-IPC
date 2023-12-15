@@ -119,7 +119,7 @@ void *Server_IPv6_codigo(void *arg)
             handler_thread_args[sig_handler].salir = argumentos->salir;
             handler_thread_args[sig_handler].segs = 0;
             handler_thread_args[sig_handler].handler_lock = &handlers_lock[sig_handler];
-            handler_thread_args[sig_handler].req_list_lock = &argumentos->req_list_lock;
+            handler_thread_args[sig_handler].req_list_lock = argumentos->req_list_lock;
             handler_thread_args[sig_handler].list = argumentos->list;
 
             //Se modifican los handlers disponibles en exclusion mutua

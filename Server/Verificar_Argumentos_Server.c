@@ -1,5 +1,7 @@
 #include "Common.h"
 #include "Funciones_Server.h"
+#include "Estructuras.h"
+#include "Verificar_Argumentos_Server.h"
 /*
 argv[1]  = Dir IPv4
 argv[2]  = Puerto IPv4
@@ -47,7 +49,7 @@ void Verificar_Argumentos_UNIX(char *argv[])
     } 
 }
 
-void  Verificar_Argumentos_IPv4(char *argv[])
+void Verificar_Argumentos_IPv4(char *argv[])
 {
     //La direccion IP debe ser correcta
     if(!dir_IPv4_valida(argv[1]))
@@ -85,7 +87,7 @@ void  Verificar_Argumentos_IPv4(char *argv[])
 
 }
 
-void  Verificar_Argumentos_IPv6(char *argv[])
+void Verificar_Argumentos_IPv6(char *argv[])
 {
     //La direccion IP debe ser correcta
     if(!dir_IPv6_valida(argv[4]))

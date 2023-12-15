@@ -33,9 +33,9 @@ void* Pool_Conex_Thread_Codigo(void *arg)
     }
     for(int i = 0; i < 5; i++)
     {
-        pthread_mutex_lock(&conx_lock);
+        pthread_mutex_lock(&conx_lock[i]);
         conx_disp[i] = 1;
-        pthread_mutex_unlock(&conx_lock);
+        pthread_mutex_unlock(&conx_lock[i]);
     }
 
     for(int i = 0; i < 5; i++)
@@ -45,7 +45,7 @@ void* Pool_Conex_Thread_Codigo(void *arg)
         conx_args[i].IPV4_iport = argumentos->IPV4_iport;
         conx_args[i].conx_disp = conx_disp;
         conx_args[i].conx_lock = &conx_lock[i];
-        conx_args[i].list_lock = &conx_list_lock;
+        conx_args[i].list_lock = &conx_list_lock[i];
         conx_args[i].ack_arg = argumentos->ack_arg;
         conx_args[i].list = l[i];
         conx_args[i].salir = argumentos->salir;
@@ -71,7 +71,7 @@ void* Pool_Conex_Thread_Codigo(void *arg)
             if(((*argumentos->salir) == 0))
             {
                 pthread_mutex_lock(argumentos->req_list_lock);
-                vacio = isEmpty_db_request_list(argumentos->req_list_lock);
+                vacio = isEmpty_db_request_list(argumentos->list);
                 pthread_mutex_unlock(argumentos->req_list_lock);
             }
             else
@@ -86,7 +86,7 @@ void* Pool_Conex_Thread_Codigo(void *arg)
             {
                 if(((*argumentos->salir) == 0))
                 {
-                    cant_conx_disp = get_cant_hand_disp(cant_conx_disp, (long unsigned int)5, conx_lock);
+                    cant_conx_disp = get_cant_hand_disp(conx_disp, (long unsigned int)5, conx_lock);
                 }
                 else
                 {

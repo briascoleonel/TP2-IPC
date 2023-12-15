@@ -77,7 +77,7 @@ void *Thread_Conex_Codigo(void *arg)
             {
                 t = get_tipo_mensaje(req->env_msg,env_msg);
                 memset(env_msg,0,MAXLINE);
-                memset(env_msg,req->env_msg);
+                strcpy(env_msg,req->env_msg);
             }
             else
             {
@@ -130,7 +130,7 @@ void *Thread_Conex_Codigo(void *arg)
                     }
                     memset(env_msg,0,MAXLINE);
                     strcpy(env_msg,recvline);
-                    cant_bytes_env = srtlen(env_msg);
+                    cant_bytes_env = strlen(env_msg);
                     escr_ret_val = 0;
                     while(escr_ret_val <= 0)
                     {

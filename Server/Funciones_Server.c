@@ -46,7 +46,7 @@ int get_prim_hand_disp(int *Handlers, long unsigned int maxHandlers, pthread_mut
     int encontrado = 0;
     for(unsigned long int i = 0; i < maxHandlers; i++)
     {
-        if(!prim)
+        if(!encontrado)
         {
             pthread_mutex_lock(&lock[i]);
             if(Handlers[i])
@@ -81,13 +81,9 @@ char get_tipo_mensaje(char *string, char *msg)
     char tipo[MAXLINE];
     char query[MAXLINE];
     int i = 0;
-    int j = 0;
     int parte = 0;
 
-    memset(msg,0,MAXLINE);
-    memset(query,0,MAXLINE);
-
-    while(string[i != '\n'])
+    while(string[i] != '\n')
     {
         if((string[i+2] != '\n') && (string[i] == ' ') && (string[i+1] == '|') && (string[i+2] == ' '))
         {
@@ -105,7 +101,7 @@ char get_tipo_mensaje(char *string, char *msg)
     }
 
     i += 3;
-    j = 0;
+    int j = 0;
     while(string[i] != '\n')
     {
         query[j] = string[i];

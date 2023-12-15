@@ -17,6 +17,21 @@ struct db_req_list
     db_request *node;
 };
 
+db_request *new_db_request(int id, int * conn, char *sendmsg)
+{
+    db_request *p = malloc(sizeof(db_request));
+    if(!p)
+    {
+        printf("Error al asignar memoria\n");
+        exit(EXIT_FAILURE);
+    }
+    p->id = id;
+    p->conn = conn; 
+    p->env_msg = sendmsg;
+    p->next = NULL;
+    return p;
+}
+
 int isEmpty_db_request_list(db_request_list *self)
 {
     db_request *aux = self->node;
@@ -143,7 +158,6 @@ int db_request_list_getNextID(db_request_list *self)
     }
 }
 
-
 db_request_list *new_db_request_list()
 {
     db_request_list *l = malloc(sizeof(db_request_list));
@@ -155,3 +169,4 @@ db_request_list *new_db_request_list()
     l->node = NULL;
     return l;
 }
+

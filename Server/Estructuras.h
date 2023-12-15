@@ -31,7 +31,7 @@ struct local_threads_arg_struct {
     struct ack_arg_struct *ack_arg;
     pthread_mutex_t *req_list_lock;
     pthread_mutex_t *lock;
-    pthread_mutex_t *list;
+    db_request_list *list;
     
 };
 

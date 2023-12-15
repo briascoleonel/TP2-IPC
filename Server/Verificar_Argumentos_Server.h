@@ -1,5 +1,5 @@
-#ifndef SERVERARGVERIFY_H    
-#define SERVERARGVERIFY_H_H
+#ifndef VERIFICARARGUMENTOSSERVER_H    
+#define VERIFICARARGUMENTOSSERVER_H_H
 
 void verificar_argumentos(int argc, char *argv[]);
 void Verificar_Argumentos_UNIX(char *argv[]);

@@ -6,6 +6,7 @@
 #include "Server_IPv4.h"
 #include "Server_IPv6.h"
 #include <pthread.h>
+#include "Verificar_Argumentos_Server.h"
 
 
 int main(int argc, char *argv[])
@@ -45,7 +46,7 @@ int main(int argc, char *argv[])
         ack_argumentos[i].conx_socket = &(conx_socket[i]);
     }
 
-    verificarArgumentos(argc,argv);
+    verificar_argumentos(argc,argv);
     strcpy(pool_conx_argumentos.IPV4_Server_Address,argv[7]);
     pool_conx_argumentos.IPV4_iport = (unsigned short int)atoi(argv[8]);
     pool_conx_argumentos.salir = &salir_todos;
