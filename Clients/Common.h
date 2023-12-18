@@ -14,6 +14,9 @@
 #include <stdatomic.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <fcntl.h> 
+#include <sqlite3.h>
+
 
 #define SA struct sockaddr
 #define MAXLINE 4096
