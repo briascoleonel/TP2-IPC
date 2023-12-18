@@ -1,7 +1,11 @@
 #include "Common.h"
+#define FILEPATH "test.db"
+
 
 //Decalaracion de funciones utilizadas
 void verificar_argumentos_IPv4(int argc, char *argv[]);      //Comprobar argumentos
+void descargar_archivo(int *socket, unsigned long int tam_file);
+
 
 int main(int argc, char *argv[])
 {
@@ -85,7 +89,7 @@ int main(int argc, char *argv[])
     }
 
     memset(env_msg,0,MAXLINE);
-    strcat(env_msg,"Tamaño recibido.\n");
+    strcat(env_msg,"Tam recibido\n");
     cant_bytes_env = strlen(env_msg);
     escr_ret_val = write(sockfd,env_msg,cant_bytes_env);
     if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes_env))
@@ -99,34 +103,9 @@ int main(int argc, char *argv[])
     tam_file[strcspn(tam_file,"\n")] = 0;
     long unsigned int TAM = (long unsigned int)atoi(tam_file);
     //Implementar funcion para descargar el file
-/*
-    while(1)
-    {
-        if(cont != veces_enviado)   //Controlamos que se envie las veces requeridas
-        {
-            //Contruccion del mensaje
-            string[strcspn(string,"\n")] = 0;                   //Saca el \n
-            strcpy(aux,string);                                 //Guarda en el aux
-            strcat(string,fin_de_msg);                          //Concatena el string con fin_de_msg
 
-            //Envio del mensaje
-            cant_bytes = strlen(string);                        //Guarda la cantidad de bytes
-            escr_ret_val = write(sockfd,string, cant_bytes);    //Devuelve cantidad de bytes escritos o -1 si falla
-            
-            //Comprobamos que no devuelva -1 o haya llegado a la cantidad de bytes    
-            if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes))
-            {
-                printf("Fallo al enviar mensaje\n");
-                exit(EXIT_FAILURE);
-            }
-            cont++;                                             //Aumenta el contador
-        }
-        else
-        {
-            break;
-        }
-    }
-*/
+    descargar_archivo(&sockfd,TAM);
+
     close(sockfd);                                              //Cierra el socket
     exit(EXIT_SUCCESS);   
 }
@@ -152,3 +131,36 @@ void verificar_argumentos_IPv4(int argc, char *argv[])
     }
 
 }
+
+void descargar_archivo(int *socket, unsigned long int tam_file)
+{
+    char recvline[MAXLINE];
+    long int recv_bytes = 0;
+    long int total_bytes_recv = 0;
+    long int bytes_escr = 0;
+    unsigned long int TAM_file = tam_file;
+
+    int archivo = open(FILEPATH,O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if(archivo == -1)
+    {
+        printf("Error al crear/leer archivo.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    while(TAM_file != 0)
+    {
+        memset(recvline,0,MAXLINE);
+        recv_bytes = read(*(socket),recvline,MAXLINE);
+        TAM_file -= (unsigned long int)recv_bytes;
+        total_bytes_recv += recv_bytes;
+        bytes_escr += write(archivo,recvline,(unsigned long int)recv_bytes);
+    }
+
+    if((close(archivo) < 0))
+    {
+        printf("Error al cerrar conexion.\n");
+        exit(EXIT_FAILURE);
+    }
+
+}
+

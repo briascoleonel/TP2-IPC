@@ -110,35 +110,6 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
-
-    /*
-    while(1)
-    {
-        if(cont != veces_enviado)   //Controlamos que se envie las veces requeridas
-        {
-            //Contruccion del mensaje
-            string[strcspn(string,"\n")] = 0;                   //Saca el \n
-            strcpy(aux,string);                                 //Guarda en el aux
-            strcat(string,fin_de_msg);                          //Concatena el string con fin_de_msg
-
-            //Envio del mensaje
-            cant_bytes = strlen(string);                        //Guarda la cantidad de bytes
-            escr_ret_val = write(sockfd,string, cant_bytes);    //Devuelve cantidad de bytes escritos o -1 si falla
-
-            //Comprobamos que no devuelva -1 o haya llegado a la cantidad de bytes    
-            if((escr_ret_val == -1) || ((long unsigned int)escr_ret_val != cant_bytes))
-            {
-                printf("Fallo al enviar mensaje\n");
-                exit(EXIT_FAILURE);
-            }
-            cont++;                                             //Aumenta el contador
-        }
-        else
-        {
-            break;
-        }
-    }
-*/
     close(sockfd);                                              //Cierra el socket
     exit(EXIT_SUCCESS);   
 }
