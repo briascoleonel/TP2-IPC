@@ -5,7 +5,7 @@
 //Decalaracion de funciones utilizadas
 void verificar_argumentos_IPv4(int argc, char *argv[]);      //Comprobar argumentos
 void descargar_archivo(int *socket, unsigned long int tam_file);
-
+void prueba_query();
 
 int main(int argc, char *argv[])
 {
@@ -18,10 +18,6 @@ int main(int argc, char *argv[])
     char recvline[MAXLINE];                           //Ingresado en stdin
     char env_msg[MAXLINE];                              //Auxiliar utilizado para guardar sin salto de linea "/n"
 
-    //Para controlar cantidad de veces que se hace el envio
-    long unsigned int veces_enviado;                //Veces que vamos a enviar(se introduce como arg)
-    long unsigned int cont = 0;                     //Contador que ira aumentando cada vez que se envia
-    
     //Variables para enviar
     long unsigned int cant_bytes_env;
     long int cant_bytes_recv;
@@ -105,6 +101,7 @@ int main(int argc, char *argv[])
     //Implementar funcion para descargar el file
 
     descargar_archivo(&sockfd,TAM);
+    prueba_query();
 
     close(sockfd);                                              //Cierra el socket
     exit(EXIT_SUCCESS);   
@@ -162,5 +159,55 @@ void descargar_archivo(int *socket, unsigned long int tam_file)
         exit(EXIT_FAILURE);
     }
 
+}
+
+void prueba_query()
+{
+    sqlite3 *db;    
+    sqlite3_stmt *res;
+    
+    int rc = sqlite3_open("test.db", &db); 
+    
+    if (rc != SQLITE_OK)  
+    {
+        printf("No se puede abrir la db. El error es %s\n",sqlite3_errmsg(db));
+        sqlite3_close(db);
+        exit(EXIT_FAILURE);
+    }
+
+    rc = sqlite3_prepare_v2(db, "SELECT Name FROM Cars", -1, &res, 0);
+
+    if (rc != SQLITE_OK) {
+        
+        fprintf(stderr, "Failed to fetch data: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Display resultados:\n");
+
+    while(sqlite3_step(res) != SQLITE_DONE)
+    {
+        int i;
+        int num_cols = sqlite3_column_count(res);
+        for (i = 0; i < num_cols; i++)
+		{
+			switch (sqlite3_column_type(res, i))
+			{
+			case (SQLITE3_TEXT):
+				printf("%s, ", sqlite3_column_text(res, i));
+				break;
+			case (SQLITE_INTEGER):
+				printf("%d, ", sqlite3_column_int(res, i));
+				break;
+			case (SQLITE_FLOAT):
+				printf("%g, ", sqlite3_column_double(res, i));
+				break;
+			default:
+				break;
+			}
+		}
+		printf("\n");
+    }
 }
 
