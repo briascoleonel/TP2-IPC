@@ -56,7 +56,7 @@ void* Task(void * arg)
 
                         strcpy(aux,recvline);               //Copiamos la query(recvline)
                         strcpy(rawmsg,aux);                 //La pasamos al aux
-                        rawmsg[strcspn(rawmsg,'\n')] = 0;   //Trunca la cadena donde se encuentra el primer '\n'
+                        rawmsg[strcspn(rawmsg,"\n")] = 0;   //Trunca la cadena donde se encuentra el primer '\n'
                         
                         //Llama a la funcion que devuelce el tipo de mensaje (en Common) y lo almacena en t
                         char t = get_tipo_mensaje(aux,query);
@@ -74,9 +74,9 @@ void* Task(void * arg)
                         {
                             get_Query(rc,argumentos->db,query,resp,argumentos->db_lock);        //Llamada a funcion para obtener query (en Funciones_DB)
                             strcat(resp,"\r\n");                                                //Agrega \r\n
-                            bytes_lect = write(*(argumentos->socket_conx), resp, strlen(resp)); //Envia la respuesta
+                            bytes_escr = write(*(argumentos->socket_conx), resp, strlen(resp)); //Envia la respuesta
                             //Handlear error
-                            if(bytes_lect < 0)
+                            if(bytes_escr < 0)
                             {
                                 printf("Errro de escritura.\n");
                                 exit(EXIT_FAILURE);
@@ -101,8 +101,8 @@ void* Task(void * arg)
                             //Enviamos el tamaño del archivo
                             sprintf(file_tam,"%ld",bytes_file); //Convierte de valor numerico a cadena     
                             strcat(file_tam,"\r\n");            //Agregamos \r\n
-                            bytes_lect = write(*(argumentos->socket_conx), file_tam, strlen(file_tam));     //Envio 
-                            if(bytes_lect < 0)      //Handlear error
+                            bytes_escr = write(*(argumentos->socket_conx), file_tam, strlen(file_tam));     //Envio 
+                            if(bytes_escr < 0)      //Handlear error
                             {
                                 printf("Error de escritura.\n");
                                 exit(EXIT_FAILURE);

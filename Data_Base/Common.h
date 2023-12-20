@@ -17,6 +17,8 @@
 #include <sqlite3.h>
 #include <fcntl.h> 
 #include <sys/stat.h> 
+#include <string.h>
+
 
 
 #include "Server_IPv4.h"
